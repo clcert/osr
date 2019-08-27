@@ -126,6 +126,10 @@ func (m *Model) BeforeCreateTable(db *pg.DB) error {
 		if err := conf.ExecBefore(db); err != nil {
 			return err
 		}
+	} else {
+		logs.Log.WithFields(logrus.Fields{
+			"model": m.Name,
+		}).Info("Error getting after statements: %s", err)
 	}
 	return nil
 }
@@ -162,6 +166,10 @@ func (m *Model) AfterCreateTable(db *pg.DB) error {
 		if err := conf.ExecAfter(db); err != nil {
 			return err
 		}
+	} else {
+		logs.Log.WithFields(logrus.Fields{
+			"model": m.Name,
+		}).Info("Error getting after statements: %s", err)
 	}
 	return nil
 }
@@ -185,9 +193,6 @@ func (s *ModelsList) CreateTables() error {
 		return err
 	}
 	for _, m := range s.Models {
-		logs.Log.WithFields(logrus.Fields{
-			"model": m.Name,
-		}).Info("Creating table for model...")
 		err = m.BeforeCreateTable(db)
 		if err != nil {
 			logs.Log.WithFields(logrus.Fields{
@@ -196,6 +201,9 @@ func (s *ModelsList) CreateTables() error {
 			}).Error("Error executing the statements before model creation: %s", err)
 			return err
 		}
+		logs.Log.WithFields(logrus.Fields{
+			"model": m.Name,
+		}).Info("Creating table for model...")
 		err := db.CreateTable(m.StructType, &orm.CreateTableOptions{
 			IfNotExists:   true,
 			FKConstraints: false,
