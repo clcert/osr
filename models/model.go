@@ -97,8 +97,11 @@ func (m *Model) GetConfig() (*ModelConfig, error) {
 
 // This function executes the statements in BeforeCreateStmts
 func (m *Model) BeforeCreateTable(db *pg.DB) error {
-	// Hardcoded
+
 	if m.BeforeCreateStmts != nil {
+		logs.Log.WithFields(logrus.Fields{
+			"model": m.Name,
+		}).Info("Executing hardcoded before statements...")
 		for _, stmt := range m.BeforeCreateStmts {
 			_, err := db.Exec(stmt)
 			if err != nil {
@@ -107,12 +110,19 @@ func (m *Model) BeforeCreateTable(db *pg.DB) error {
 		}
 	}
 	if m.BeforeCreateFunction != nil {
+		logs.Log.WithFields(logrus.Fields{
+			"model": m.Name,
+		}).Info("Executing before function...")
 		err := m.BeforeCreateFunction(db)
 		if err != nil {
 			return err
 		}	}
 	// From config
 	if conf, err := m.GetConfig(); err == nil {
+		logs.Log.WithFields(logrus.Fields{
+			"model": m.Name,
+			"conf": conf,
+		}).Info("Executing before statements from config...")
 		if err := conf.ExecBefore(db); err != nil {
 			return err
 		}
@@ -124,6 +134,9 @@ func (m *Model) BeforeCreateTable(db *pg.DB) error {
 func (m *Model) AfterCreateTable(db *pg.DB) error {
 	// Hardcoded Statements
 	if m.AfterCreateStmts != nil {
+		logs.Log.WithFields(logrus.Fields{
+			"model": m.Name,
+		}).Info("Executing hardcoded after statements...")
 		for _, stmt := range m.AfterCreateStmts {
 			_, err := db.Model(m.StructType).Exec(stmt)
 			if err != nil {
@@ -132,6 +145,9 @@ func (m *Model) AfterCreateTable(db *pg.DB) error {
 		}
 	}
 	if m.AfterCreateFunction != nil {
+		logs.Log.WithFields(logrus.Fields{
+			"model": m.Name,
+		}).Info("Executing after function...")
 		err := m.AfterCreateFunction(db)
 		if err != nil {
 			return err
@@ -139,6 +155,10 @@ func (m *Model) AfterCreateTable(db *pg.DB) error {
 	}
 	// From config
 	if conf, err := m.GetConfig(); err == nil {
+		logs.Log.WithFields(logrus.Fields{
+			"model": m.Name,
+			"conf": conf,
+		}).Info("Executing after statements from config...")
 		if err := conf.ExecAfter(db); err != nil {
 			return err
 		}
