@@ -121,7 +121,6 @@ func (m *Model) BeforeCreateTable(db *pg.DB) error {
 	if conf, err := m.GetConfig(); err == nil {
 		logs.Log.WithFields(logrus.Fields{
 			"model": m.Name,
-			"conf": conf,
 		}).Info("Executing before statements from config...")
 		if err := conf.ExecBefore(db); err != nil {
 			return err
@@ -129,7 +128,7 @@ func (m *Model) BeforeCreateTable(db *pg.DB) error {
 	} else {
 		logs.Log.WithFields(logrus.Fields{
 			"model": m.Name,
-		}).Info("Error getting after statements: %s", err)
+		}).Error("Error getting after statements: %s", err)
 	}
 	return nil
 }
@@ -161,7 +160,6 @@ func (m *Model) AfterCreateTable(db *pg.DB) error {
 	if conf, err := m.GetConfig(); err == nil {
 		logs.Log.WithFields(logrus.Fields{
 			"model": m.Name,
-			"conf": conf,
 		}).Info("Executing after statements from config...")
 		if err := conf.ExecAfter(db); err != nil {
 			return err
@@ -169,7 +167,7 @@ func (m *Model) AfterCreateTable(db *pg.DB) error {
 	} else {
 		logs.Log.WithFields(logrus.Fields{
 			"model": m.Name,
-		}).Info("Error getting after statements: %s", err)
+		}).Error("Error getting after statements: %s", err)
 	}
 	return nil
 }
