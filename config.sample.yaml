@@ -1,0 +1,37 @@
+databases:
+  postgres:
+    server: localhost
+    port: 5432
+    dbname: osr
+models:
+  BlacklistedSubnet:
+    AfterCreate:
+      osr-blacklist.yaml
+folders:
+  home: /home/osr/.osr
+  keys: keys
+  logs: logs
+  queries: queries
+  scripts: scripts
+  tasks: tasks
+mailer:
+  credentials:
+    email: osr@notification.mail
+    name: OSR Mailbot
+    password: xxx
+    port: 587
+    server: smtp.osr.mail
+    username: mailuser
+  emails:
+    - destination@osr.mail
+  notifylevel: 0 # 0 is debug
+remote:
+  - address: 192.168.0.11
+    name: server1
+    username: osr
+  - address: 192.168.0.12
+    name: server2
+    username: osr
+  - address: 192.168.0.13
+    name: server3
+    username: osr
