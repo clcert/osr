@@ -16,9 +16,9 @@ import (
 type ScriptConfig struct {
 	ServerName string        // Name of the server as defined in OSR config
 	Name       string        // Name of the virtual file
-	Script     string        // Local path to script that is going to be executed on server
+	Script     string        // Local Path to script that is going to be executed on server
 	Path       string        // Working Remote Directory used by the command and output of the queries
-	Queries    query.FileMap // List of queries to execute and upload to the Path folder
+	Queries    query.Queries // List of queries to execute and upload to the Path folder
 }
 
 // ScriptSource represents a source that is a command in execution.

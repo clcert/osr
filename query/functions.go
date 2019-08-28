@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// Export executes queries defiend in inFolder. If whitelist is not empty, it uses only the queries of it.
+// Export executes queries defined in inFolder. If whitelist is not empty, it uses only the queries of it.
 func Execute(queryFiles []string, outFolder string, whitelist []string, headers bool) error {
 	db, err := databases.GetPostgresReader()
 	if err != nil {
@@ -28,7 +28,7 @@ func Execute(queryFiles []string, outFolder string, whitelist []string, headers 
 		if err := os.MkdirAll(outFolderPath, 0755); err != nil {
 			return err
 		}
-		queries, err := OpenFile(queryFile, whitelist...)
+		queries, err := OpenFile(queryFile, whitelist, nil)
 		if err != nil {
 			return err
 		}

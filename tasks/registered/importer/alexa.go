@@ -1,9 +1,9 @@
-package _import
+package importer
 
 import (
 	"github.com/clcert/osr/models"
 	"github.com/clcert/osr/tasks"
-	"github.com/clcert/osr/tasks/processes/import/alexa/rankings"
+	"github.com/clcert/osr/tasks/processes/importer/alexa/rankings"
 )
 
 func init() {

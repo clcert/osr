@@ -25,13 +25,6 @@ func (args *Args) AddSources(sourcesList []sources.Source) {
 	}
 }
 
-// AddParams add new params to the params list
-func (args *Args) AddParams(params utils.Params) {
-	for k, v := range params {
-		args.Params[k] = v
-	}
-}
-
 // AddSavers add new savers to the savers list
 func (args *Args) AddSavers(saversList []savers.Saver) {
 	for _, v := range saversList {

@@ -17,8 +17,8 @@ import (
 type SFTPConfig struct {
 	ServerName string        // Name of the server as declared on OSR config
 	Path       string        // Path where the process will start to look for the entries
-	Script     string        // Local script path. This script will be uploaded to Path.
-	Queries    query.FileMap // Saved Queries on files on queries folder.
+	Script     string        // Local script Path. This script will be uploaded to Path.
+	Queries    query.Queries // Saved Queries on files on queries folder.
 	Filter     *FilterConfig // Filter configuration
 }
 
@@ -35,7 +35,7 @@ type SFTPSource struct {
 
 // SFTPFile represents a SFTP entry source.
 type SFTPFile struct {
-	path   string      // Complete path of the file
+	path   string      // Complete Path of the file
 	source *SFTPSource // Related source
 	file   *sftp.File  // File object
 	buffer io.Reader   // Buffered extReader

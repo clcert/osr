@@ -17,7 +17,7 @@ import (
 // TODO: More loging on this source
 // ZipConfig defines the configuration that a Zip Source uses
 type ZipConfig struct {
-	Path   string        // Local path to the zip file
+	Path   string        // Local Path to the zip file
 	Filter *FilterConfig // Filter configuration
 }
 

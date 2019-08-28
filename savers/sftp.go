@@ -12,7 +12,7 @@ import (
 	"sync"
 )
 
-// TODO: More loging on this source
+// TODO: More logging on this source
 // SFTPConfig defines a configuration for a SFTP saver.
 type SFTPConfig struct {
 	ServerName string                     // Name of the server as defined in the server configuration of OSR

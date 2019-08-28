@@ -22,8 +22,8 @@ var DefaultModels = ModelsList{
 
 // ModelConfig defines a configuration list in
 type ModelConfig struct {
-	BeforeCreate query.FileMap   // Statements to execute before model creation
-	AfterCreate  query.FileMap   // Statements to execute after model creation
+	BeforeCreate query.Queries // Statements to execute before model creation
+	AfterCreate  query.Queries // Statements to execute after model creation
 }
 
 // This struct defines abstractly a new model in the application.
@@ -52,8 +52,8 @@ func (conf *ModelConfig) ExecBefore(db *pg.DB) error {
 	if conf == nil {
 		return nil
 	}
-	for queryFile, whitelist := range conf.BeforeCreate {
-		queries, err := query.OpenFile(queryFile, whitelist...)
+	for _, queryConfig := range conf.BeforeCreate {
+		queries, err := queryConfig.Open()
 		if err != nil {
 			return err
 		}
@@ -72,8 +72,8 @@ func (conf *ModelConfig) ExecAfter(db *pg.DB) error {
 	if conf == nil {
 		return nil
 	}
-	for queryFile, whitelist := range conf.AfterCreate {
-		queries, err := query.OpenFile(queryFile, whitelist...)
+	for _, queryConfig := range conf.AfterCreate {
+		queries, err := queryConfig.Open()
 		if err != nil {
 			return err
 		}

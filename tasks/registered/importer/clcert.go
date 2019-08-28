@@ -1,12 +1,12 @@
-package _import
+package importer
 
 import (
 	"github.com/clcert/osr/models"
 	"github.com/clcert/osr/tasks"
-	chilean_dns "github.com/clcert/osr/tasks/processes/import/clcert/chilean-dns"
-	"github.com/clcert/osr/tasks/processes/import/clcert/darknet"
-	domain_categories "github.com/clcert/osr/tasks/processes/import/clcert/domain-categories"
-	port_scan "github.com/clcert/osr/tasks/processes/import/clcert/port-scan"
+	chilean_dns "github.com/clcert/osr/tasks/processes/importer/clcert/chilean-dns"
+	"github.com/clcert/osr/tasks/processes/importer/clcert/darknet"
+	domain_categories "github.com/clcert/osr/tasks/processes/importer/clcert/domain-categories"
+	port_scan "github.com/clcert/osr/tasks/processes/importer/clcert/port-scan"
 )
 
 func init() {

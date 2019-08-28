@@ -211,7 +211,7 @@ func (source *HTTPSource) retrieveFiles(httpFile *HTTPFile) {
 			}
 			if len(source.filter.Patterns) == 0 {
 				source.log.WithFields(logrus.Fields{
-					"path": aFile.url.String(),
+					"Path": aFile.url.String(),
 				}).Info("Adding file...")
 				source.files <- aFile
 				return
@@ -219,7 +219,7 @@ func (source *HTTPSource) retrieveFiles(httpFile *HTTPFile) {
 			for _, regex := range source.filter.Patterns {
 				if regex.MatchString(aFile.Name()) {
 					source.log.WithFields(logrus.Fields{
-						"path": aFile.Path(),
+						"Path": aFile.Path(),
 					}).Info("Adding file...")
 					source.files <- aFile
 					return

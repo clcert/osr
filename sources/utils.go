@@ -9,7 +9,7 @@ import (
 	"path"
 )
 
-func executeQueries(server *remote.Server, remotePath string, queryFiles query.FileMap, params utils.Params) error {
+func executeQueries(server *remote.Server, remotePath string, queryFiles query.Queries, params utils.Params) error {
 	db, err := databases.GetPostgresReader()
 	if err != nil {
 		return err
@@ -19,8 +19,8 @@ func executeQueries(server *remote.Server, remotePath string, queryFiles query.F
 	if err != nil {
 		return err
 	}
-	for queryFile, whitelist := range queryFiles {
-		queries, err := query.OpenFile(queryFile, whitelist...)
+	for _, queryConfig := range queryFiles {
+		queries, err := queryConfig.Open()
 		if err != nil {
 			// TODO: Log this
 			continue

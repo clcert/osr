@@ -10,9 +10,12 @@ package savers
 
 import (
 	"fmt"
+	"github.com/clcert/osr/logs"
 	"github.com/clcert/osr/mailer"
+	"github.com/clcert/osr/panics"
 	"github.com/clcert/osr/utils"
 	"github.com/fatih/structs"
+	"reflect"
 )
 
 // A saver is a device where I can save results of processes.
@@ -42,8 +45,7 @@ type Config struct {
 	Postgres *PostgresConfig // Config if type is postgres
 }
 
-// A savable object is an object sent to being saved. It allows to add metainformation to the savable object,
-// via a hashmap.
+// A savable object is an object sent to being saved. It allows to add metainformation to the savable object, via a hashmap.
 type Savable struct {
 	Object interface{}       // Object related to savable
 	Meta   map[string]string // Metainformation for object
@@ -62,10 +64,40 @@ func (config Config) New(name string, params utils.Params) (Saver, error) {
 	}
 }
 
+// Returns true if savable has a struct
+func (savable *Savable) IsStruct() bool {
+	return reflect.ValueOf(savable.Object).Kind() == reflect.Struct
+}
+
+// Returns true if savable has a map of strings to strings
+func (savable *Savable) IsMap() bool {
+	_, ok := savable.Object.(map[string]string)
+	return ok
+}
+
 // StructName returns the name of the struct saved by the savable object.
 func (savable *Savable) StructName() string {
-	s := structs.New(savable.Object)
-	return s.Name()
+	switch {
+	case savable.IsStruct():
+		s := structs.New(savable.Object)
+		return s.Name()
+	case savable.IsMap():
+		if name, ok := savable.Meta["outID"]; ok {
+			return name
+		} else {
+			panic(&panics.Info{
+				Text:        "Cannot save map object without outID metaproperty using SFTP saver",
+				Err:         fmt.Errorf("Cannot save map object without outID metaproperty using SFTP saver"),
+				Attachments: []mailer.Attachable{logs.Log},
+			})
+		}
+	default:
+		panic(&panics.Info{
+			Text:        "Cannot save object different than a struct or map on a SFTP saver",
+			Err:         fmt.Errorf("trying to save on a sftp saver an object different than a struct or map"),
+			Attachments: []mailer.Attachable{logs.Log},
+		})
+	}
 }
 
 // GetOutID returns the "out ID" of a savable object. If it's defined as a meta option
@@ -80,13 +112,46 @@ func (savable *Savable) GetOutID() string {
 
 // Fields transforms the structure contained by Savable in a map with values.
 func (savable *Savable) Fields() map[string]interface{} {
-	s := structs.New(savable.Object)
-	return s.Map()
+	switch {
+	case savable.IsStruct():
+		s := structs.New(savable.Object)
+		return s.Map()
+	case savable.IsMap():
+		savableMap := savable.Object.(map[string]string)
+		fields := make(map[string]interface{}, len(savableMap))
+		for f, v := range savableMap {
+			fields[f] = v
+		}
+		return fields
+	default:
+		panic(&panics.Info{
+			Text:        "Cannot save object different than a struct or map on a SFTP saver",
+			Err:         fmt.Errorf("trying to save on a sftp saver an object different than a struct or map"),
+			Attachments: []mailer.Attachable{logs.Log},
+		})
+	}
 }
 
 // FieldNames returns the names of the fields of the structure contained by Savable
 func (savable *Savable) FieldNames() []string {
-	s := structs.New(savable.Object)
-	return s.Names()
-
+	switch {
+	case savable.IsStruct():
+		s := structs.New(savable.Object)
+		return s.Names()
+	case savable.IsMap():
+		savableMap := savable.Object.(map[string]string)
+		fieldNames := make([]string, len(savableMap))
+		i := 0
+		for f, _ := range savableMap {
+			fieldNames[i] = f
+			i++
+		}
+		return fieldNames
+	default:
+		panic(&panics.Info{
+			Text:        "Cannot save object different than a struct or map on a SFTP saver",
+			Err:         fmt.Errorf("trying to save on a sftp saver an object different than a struct or map"),
+			Attachments: []mailer.Attachable{logs.Log},
+		})
+	}
 }

@@ -1,9 +1,9 @@
-package _import
+package importer
 
 import (
 	"github.com/clcert/osr/models"
 	"github.com/clcert/osr/tasks"
-	chilean_subnets "github.com/clcert/osr/tasks/processes/import/ripe/chilean-subnets"
+	chilean_subnets "github.com/clcert/osr/tasks/processes/importer/ripe/chilean-subnets"
 )
 
 func init() {

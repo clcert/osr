@@ -7,20 +7,21 @@ import (
 	"github.com/clcert/osr/query"
 	"github.com/clcert/osr/utils"
 	"github.com/go-pg/pg"
+	"github.com/sirupsen/logrus"
 	"io"
 	"path"
 )
 
 // TODO: More logging on this source
-// QueryConfig defines the configuration that a Query Source uses
-type QueryConfig struct {
-	path    string        // Virtual path
-	Queries query.FileMap // List of queries to execute and upload to the Path folder
+// QueryListConfig defines the configuration that a Query Source uses
+type QueryListConfig struct {
+	Path    string        // Virtual Path
+	Queries query.Queries // List of queries to execute and upload to the Path folder
 }
 
 // QuerySource represents a source that is a group of sql queries.
 type QuerySource struct {
-	*QueryConfig
+	*QueryListConfig
 	conn   *pg.DB          // DB Connection
 	name   string          // Source name
 	log    *logs.OSRLog    // Source log file
@@ -36,8 +37,8 @@ type QueryFile struct {
 	writer *io.PipeWriter
 }
 
-// New creates a new QuerySource from a QueryConfig.
-func (config *QueryConfig) New(name string, params utils.Params) (source *QuerySource, err error) {
+// New creates a new QuerySource from a QueryListConfig.
+func (config *QueryListConfig) New(name string, params utils.Params) (source *QuerySource, err error) {
 	err = config.Format(params)
 	if err != nil {
 		return
@@ -47,20 +48,21 @@ func (config *QueryConfig) New(name string, params utils.Params) (source *QueryS
 		return
 	}
 	source = &QuerySource{
-		name:        name,
-		QueryConfig: config,
-		log:         log,
-		params:      params,
-		files:       make(chan *QueryFile),
+		name:            name,
+		QueryListConfig: config,
+		log:             log,
+		params:          params,
+		files:           make(chan *QueryFile),
 	}
 	return
 }
 
 // Format formats the configuration, using the params defined in the task
-func (config *QueryConfig) Format(params utils.Params) error {
+func (config *QueryListConfig) Format(params utils.Params) error {
 	if params == nil {
 		return nil
 	}
+	config.Path = params.FormatString(config.Path)
 	config.Queries = config.Queries.Format(params)
 	return nil
 }
@@ -78,10 +80,14 @@ func (source *QuerySource) Init() error {
 	source.conn = db
 
 	go func() {
-		for queryFile, whitelist := range source.Queries {
-			queries, err := query.OpenFile(queryFile, whitelist...)
+		for _, queryConfig := range source.Queries {
+			queries, err := queryConfig.Open()
 			if err != nil {
-				// TODO: Log this
+				source.log.WithFields(logrus.Fields{
+					"query": queryConfig.Path,
+					"whitelist": queryConfig.Whitelist,
+					"params": queryConfig.Params,
+				}).Infof("error opening query: %s", err)
 				continue
 			}
 			for _, aQuery := range queries {
@@ -93,8 +99,8 @@ func (source *QuerySource) Init() error {
 					writer: writer,
 				}
 			}
-			close(source.files)
 		}
+		close(source.files)
 	}()
 	return nil
 }
@@ -138,7 +144,7 @@ func (source *QuerySource) GetAttachments() []string {
 
 func (srcFile *QueryFile) Open() (io.Reader, error) {
 	go func() {
-		err := srcFile.query.Export(srcFile.source.conn, srcFile.writer, true) // Todo: evaluate if with headers is better
+		err := srcFile.query.Export(srcFile.source.conn, srcFile.writer, true)
 		_ = srcFile.writer.CloseWithError(err)
 	}()
 	return srcFile.reader, nil
@@ -149,7 +155,7 @@ func (srcFile *QueryFile) Name() string {
 }
 
 func (srcFile *QueryFile) Dir() string {
-	return srcFile.source.path
+	return srcFile.source.Path
 }
 
 func (srcFile *QueryFile) Path() string {

@@ -102,9 +102,26 @@ func (params Params) FormatReader(reader io.Reader) io.Reader {
 	return &buf
 }
 
-func (formatArgs *FormatArgs) Get(key, defVal string) string {
-	if val, ok := formatArgs.Params[key]; ok {
+// Returns a new Params map with params from both sources.
+// The preference of params is for params2.
+func (params Params) Join(params2 Params) Params {
+	newParams := make(Params)
+	for k, v := range params {
+		newParams[k] = v
+	}
+	for k, v := range params2 {
+		newParams[k] = v
+	}
+	return newParams
+}
+
+func (params Params) Get(key string, defVal string) string {
+	if val, ok := params[key]; ok {
 		return val
 	}
 	return defVal
+}
+
+func (formatArgs *FormatArgs) Get(key, defVal string) string {
+	return formatArgs.Params.Get(key, defVal)
 }

@@ -21,10 +21,10 @@ import (
 
 // It defines a source config. It can define only one from [SFTP, HTTP, Script, ...]
 type Config struct {
-	SFTP   *SFTPConfig   // Config if type is sftp
-	HTTP   *HTTPConfig   // Config if type is http
-	Script *ScriptConfig // Config if type is command
-	Query  *QueryConfig  // Config if type is query
+	SFTP   *SFTPConfig      // Config if type is sftp
+	HTTP   *HTTPConfig      // Config if type is http
+	Script *ScriptConfig    // Config if type is command
+	Query  *QueryListConfig // Config if type is query
 }
 
 // Source defines a stream of entries, related to an import.
@@ -47,13 +47,13 @@ type Source interface {
 }
 
 // An entry represents a single file/object in a source.
-// It has a name, a path, a dir and it's openable and closeable.
+// It has a name, a Path, a dir and it's openable and closeable.
 type Entry interface {
 	// Open tries to open the entry, returning a extReader if it is successful.
 	Open() (io.Reader, error)
 	// Name returns the name of the file in the entry.
 	Name() string
-	// Path returns the path of the file in the entry.
+	// Path returns the Path of the file in the entry.
 	Path() string
 	// Dir returns the dir of the file in the entry.
 	Dir() string
@@ -70,7 +70,7 @@ type FilterConfig struct {
 // A filter defines a set of rules to add a file to the entries list.
 type Filter struct {
 	Patterns  []*regexp.Regexp // A list of regexes. If a file has a name that matches them, it's added to the list.
-	Recursive bool             // If true, some sources look onto internal folders of a root path.
+	Recursive bool             // If true, some sources look onto internal folders of a root Path.
 }
 
 // New creates a new Source based on a specific configuration.

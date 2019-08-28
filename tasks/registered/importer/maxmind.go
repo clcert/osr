@@ -1,9 +1,9 @@
-package _import
+package importer
 
 import (
 	"github.com/clcert/osr/models"
 	"github.com/clcert/osr/tasks"
-	"github.com/clcert/osr/tasks/processes/import/maxmind/geolite2"
+	"github.com/clcert/osr/tasks/processes/importer/maxmind/geolite2"
 )
 
 //TODO: join all of this in an only maxmind command (Import this data separatedly is purposeless)

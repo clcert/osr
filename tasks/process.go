@@ -60,12 +60,12 @@ func (process *Process) NewArgs(task *Task) (*Args, error) {
 		Process: process,
 		Sources: make([]sources.Source, 0),
 		Savers:  make([]savers.Saver, 0),
-		Params:  make(map[string]string, 0),
+		Params:  make(utils.Params, 0),
 		Task:    task.TaskSession,
 		Log:     log,
 	}
 	// Adding params of task
-	args.AddParams(task.Params)
+	args.Params = args.Params.Join(task.Params)
 	return args, nil
 }
 

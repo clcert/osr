@@ -23,7 +23,10 @@ var TaskCmd = &cobra.Command{
 	Use:   "task",
 	Short: "Executes a process task",
 	Long:  "Init configuration and users of the DB OSR uses",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) == 0 {
+			return fmt.Errorf("no task file in args")
+		}
 		for _, configName := range args {
 			config, err := tasks.ParseConfig(configName)
 			if err != nil {
@@ -37,7 +40,6 @@ var TaskCmd = &cobra.Command{
 				})
 			}
 			logs.Log.WithFields(logrus.Fields{
-
 				"name":          config.Name,
 				"description":   config.Description,
 				"global_params": config.Params,
@@ -54,5 +56,6 @@ var TaskCmd = &cobra.Command{
 			}
 			task.Execute()
 		}
+		return nil
 	},
 }

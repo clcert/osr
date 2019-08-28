@@ -148,10 +148,9 @@ func (task *Task) execute(processName string) error {
 	}
 
 	// Add process specific params
-	args.AddParams(config.Params)
-
+	args.Params = args.Params.Join(config.Params)
 	// Add command line specific params
-	args.AddParams(task.CmdParams)
+	args.Params = args.Params.Join(task.CmdParams)
 
 	// parse and initialize sourcesList
 	if process.NumSources >= 0 && len(config.Sources) != process.NumSources {

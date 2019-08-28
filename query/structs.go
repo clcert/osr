@@ -22,11 +22,21 @@ type Query struct {
 	SQL         string `yaml:"query"`
 }
 
+type QueryConfig struct {
+	Path      string
+	Whitelist []string
+	Params    utils.Params
+}
+
 // Defines a query file configuration.
 // It is composed of a filename (with its path from the config folder) and a list of queries to execute.
-type FileMap map[string][]string
+type Queries []*QueryConfig
 
-func (entry *Query) Execute(db *pg.DB, params... interface{}) (pg.Result, error) {
+func (config *QueryConfig) Open() ([]*Query, error) {
+	return OpenFile(config.Path, config.Whitelist, config.Params)
+}
+
+func (entry *Query) Execute(db *pg.DB, params ...interface{}) (pg.Result, error) {
 	return db.Exec(entry.SQL, params...)
 }
 
@@ -55,7 +65,10 @@ func (entry *Query) Export(db *pg.DB, file io.Writer, headers bool) error {
 }
 
 // Opens a query file and returns the queries specified in whitelist
-func OpenFile(queryFilename string, whitelist ...string) ([]*Query, error) {
+func OpenFile(queryFilename string, whitelist []string, params utils.Params) ([]*Query, error) {
+	if params == nil {
+		params = make(utils.Params)
+	}
 	queryFile := &File{}
 	filepath, err := GetQueriesPath()
 	if err != nil {
@@ -69,29 +82,31 @@ func OpenFile(queryFilename string, whitelist ...string) ([]*Query, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(whitelist) == 0 {
-		return queryFile.Queries, nil
-	} else {
-		queries := make([]*Query, 0)
-		for _, query := range queryFile.Queries {
-			for _, whitelisted := range whitelist {
-				if query.Name == whitelisted {
-					queries = append(queries, query)
-					break
-				}
-			}
-		}
-		return queries, nil
+	queries := make([]*Query, 0)
+	whitelistMap := make(map[string]struct{})
+	for _, whitelisted := range whitelist {
+		whitelistMap[whitelisted] = struct{}{}
 	}
+	for _, query := range queryFile.Queries {
+		if _, ok := whitelistMap[query.Name]; ok || len(whitelistMap) == 0 {
+			queries = append(queries, query.Format(params))
+		}
+	}
+	return queries, nil
 }
 
-// Creates a new FileMap instance with the edited fields.
-func (fileMap FileMap) Format(params utils.Params) FileMap {
-	newMap := make(FileMap)
-	for k, vList := range fileMap {
-		newMap[params.FormatString(k)] = params.FormatStringArray(vList)
+// Creates a new Queries instance with the edited fields.
+func (queries Queries) Format(params utils.Params) Queries {
+	newList := make(Queries, len(queries))
+	for i, queryConfig := range queries {
+		newParams := params.Join(queryConfig.Params)
+		newList[i] = &QueryConfig{
+			Path:      params.FormatString(queryConfig.Path),
+			Params:    newParams,
+			Whitelist: params.FormatStringArray(queryConfig.Whitelist),
+		}
 	}
-	return newMap
+	return newList
 }
 
 // Creates a new Query instance with the edited fields.
