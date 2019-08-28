@@ -3,6 +3,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/clcert/osr/cmd/plot"
 	"github.com/clcert/osr/panics"
 	"github.com/spf13/cobra"
 	"os"
@@ -18,6 +19,7 @@ func init() {
 	RootCmd.AddCommand(MailerCmd)
 	RootCmd.AddCommand(TaskCmd)
 	RootCmd.AddCommand(VersionCmd)
+	RootCmd.AddCommand(plot.PlotCmd)
 }
 
 // The root of osr.

@@ -11,15 +11,17 @@ type HeadedCSV struct {
 	Headers []string
 }
 
+// Returns a new headed CSV from a reader source.
+// if headers is not nil, it defines the headers from that list. If it is nil, the
+// first line of the reader is the headers.
 func NewHeadedCSV(source io.Reader, headers []string) (headedCSV *HeadedCSV, err error) {
+	csvReader := csv.NewReader(source)
 	if headers == nil {
-		headers, err = GetCSVHeader(source)
+		headers, err = csvReader.Read()
 		if err != nil {
-			return
+			return nil, err
 		}
 	}
-	csvReader := csv.NewReader(source)
-	csvReader.ReuseRecord = true
 	headedCSV = &HeadedCSV{
 		Reader:  csvReader,
 		Headers: headers,
@@ -27,6 +29,7 @@ func NewHeadedCSV(source io.Reader, headers []string) (headedCSV *HeadedCSV, err
 	return
 }
 
+// Returns the next row of the CSV.
 func (csv *HeadedCSV) NextRow() (map[string]string, error) {
 	nextRow, err := csv.Reader.Read()
 	if err != nil {
@@ -54,12 +57,40 @@ func (csv *HeadedCSV) HasHeader(str string) bool {
 	return false
 }
 
-
-func GetCSVHeader(file io.Reader) ([]string, error) {
-	csvReader := csv.NewReader(file)
-	header, err := csvReader.Read()
-	if err != nil {
-		return nil, err
+func (csv *HeadedCSV) ToArrayMap() (map[string][]string, error) {
+	arrayMap := make(map[string][]string)
+	for _, header := range csv.Headers {
+		arrayMap[header] = make([]string, 0)
 	}
-	return header, nil
+	for {
+		line, err := csv.NextRow()
+		if err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				return nil, err
+			}
+		}
+		for key, _ := range arrayMap {
+			arrayMap[key] = append(arrayMap[key], line[key])
+		}
+	}
+	return arrayMap, nil
 }
+
+func (csv *HeadedCSV) ToMapArray() ([]map[string]string, error) {
+	mapArray := make([]map[string]string, 0)
+	for {
+		line, err := csv.NextRow()
+		if err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				return nil, err
+			}
+		}
+		mapArray = append(mapArray, line)
+	}
+	return mapArray, nil
+}
+
