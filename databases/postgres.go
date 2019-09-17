@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// Creates a new postgres user in a db connection, with a given username and default table and sequence permissions.
+// NewPostgresUser creates a new postgres user using the given DB connection, with a given username and a list of default table and sequence permissions.
 // If the user already exists, it finishes with an error
 func NewPostgresUser(db *pg.DB, username string, tablePermissions []string, seqPermissions []string) (*Credentials, error) {
 	creds := Credentials{
@@ -82,8 +82,7 @@ func NewPostgresUser(db *pg.DB, username string, tablePermissions []string, seqP
 	return &creds, nil
 }
 
-// Returns a pg.DB struct with a "connection" to a Postgres database
-// with read permissions.
+// GetPostgresReader returns a pg.DB struct with a "connection" to a Postgres database with read permissions.
 func GetPostgresReader() (*pg.DB, error) {
 	conf, err := GetDBConfig("postgres")
 	return pg.Connect(&pg.Options{
@@ -94,7 +93,7 @@ func GetPostgresReader() (*pg.DB, error) {
 	}), err
 }
 
-// Returns a pg.DB struct with a "connection" to a Postgres database
+// GetPostgresWriter returns a pg.DB struct with a "connection" to a Postgres database
 // with read and write permissions.
 func GetPostgresWriter() (*pg.DB, error) {
 	conf, err := GetDBConfig("postgres")

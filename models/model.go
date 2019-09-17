@@ -1,4 +1,4 @@
-// This package contains all the models defined for using
+// models contains all the models defined and usable
 // natively in the main Postgresql database.
 package models
 
@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Defines the default model list.
+// DefaultModels defines the default model list.
 var DefaultModels = ModelsList{
 	Name:   "default",
 	Models: make([]Model, 0),
@@ -26,7 +26,7 @@ type ModelConfig struct {
 	AfterCreate  query.Queries // Statements to execute after model creation
 }
 
-// This struct defines abstractly a new model in the application.
+// Model defines abstractly a new model in the application.
 type Model struct {
 	Name                 string      // The human readable name for the model
 	Description          string      // A description about the model
@@ -47,7 +47,7 @@ type ModelsList struct {
 	AfterCreateStmts  []string // A list of SQL statements to execute after the model creation.
 }
 
-// Executes the queries defined in BeforeCreate config file
+// ExecBefore executes the queries defined in BeforeCreate config file
 func (conf *ModelConfig) ExecBefore(db *pg.DB) error {
 	if conf == nil {
 		return nil
@@ -67,7 +67,7 @@ func (conf *ModelConfig) ExecBefore(db *pg.DB) error {
 	return nil
 }
 
-// Executes the queries defined in AfterCreate config file
+// ExecAfter executes the queries defined in AfterCreate config file
 func (conf *ModelConfig) ExecAfter(db *pg.DB) error {
 	if conf == nil {
 		return nil
@@ -87,7 +87,7 @@ func (conf *ModelConfig) ExecAfter(db *pg.DB) error {
 	return nil
 }
 
-// Unmarshals the config defined in viper for a model as a ModelConfig struct.
+// GetConfig unmarshals the config defined in viper for a model as a ModelConfig struct.
 func (m *Model) GetConfig() (*ModelConfig, error) {
 	var modelConf *ModelConfig
 	structName := structs.Name(m.StructType)
@@ -95,7 +95,7 @@ func (m *Model) GetConfig() (*ModelConfig, error) {
 	return modelConf, err
 }
 
-// This function executes the statements in BeforeCreateStmts
+// BeforeCreateTable executes the statements in BeforeCreateStmts
 func (m *Model) BeforeCreateTable(db *pg.DB) error {
 
 	if m.BeforeCreateStmts != nil {
@@ -133,7 +133,7 @@ func (m *Model) BeforeCreateTable(db *pg.DB) error {
 	return nil
 }
 
-// This function executes the statements in AfterCreateStmts
+// AfterCreateTable executes the statements in AfterCreateStmts
 func (m *Model) AfterCreateTable(db *pg.DB) error {
 	// Hardcoded Statements
 	if m.AfterCreateStmts != nil {
@@ -172,12 +172,12 @@ func (m *Model) AfterCreateTable(db *pg.DB) error {
 	return nil
 }
 
-// Appends a model to a model list.
+// Append appends a model to a model list.
 func (s *ModelsList) Append(m Model) {
 	s.Models = append(s.Models, m)
 }
 
-// Executes the statements necessary to create all the tables of the Models Group.
+// CreateTables executes the statements necessary to create all the tables of the Models Group.
 // First, it executes the statements present in "BeforeCreateStmts".
 // Then, it creates the tables of the models group. Before and after each table created, it executes
 // the "BeforeCreateTable" and "AfterCreateTable" function of the models, respectively.
@@ -230,7 +230,7 @@ func (s *ModelsList) CreateTables() error {
 	return nil
 }
 
-// Executes a list of statements.
+// execStmts executes a list of statements.
 func (s *ModelsList) execStmts(db *pg.DB, stmtList []string) error {
 	if stmtList != nil {
 		for _, stmt := range stmtList {

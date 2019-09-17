@@ -1,9 +1,10 @@
-	package models
+package models
 
 func init() {
 	DefaultModels.Append(ASNModel)
 }
 
+// ASNModel contains the metainformation related to the respective model.
 var ASNModel = Model{
 	Name:        "ASN",
 	Description: "Autonomous System Number",

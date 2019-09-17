@@ -8,6 +8,7 @@ func init() {
 	DefaultModels.Append(IpAsnCountryModel)
 }
 
+// IpAsnCountryModel contains the metainformation related to the respective model.
 var IpAsnCountryModel = Model{
 	Name:        "Address ASN Country",
 	Description: "Scanned Address with info about its ASN and Country associated in a given moment",
@@ -17,7 +18,7 @@ var IpAsnCountryModel = Model{
 	},
 }
 
-// This represents a valid scanned Address (That is, properly formed and not in a reserved range).
+// IpAsnCountry represents a valid scanned Address (That is, properly formed and not in a reserved range).
 type IpAsnCountry struct {
 	TaskID           int `sql:",pk,type:bigint"`          // Number of the importer session related to this value
 	Task             *Task                                // The importer session

@@ -9,6 +9,7 @@ func init() {
 	DefaultModels.Append(DnsRRModel)
 }
 
+// DnsRRModel contains the metainformation related to the respective model.
 var DnsRRModel = Model{
 	Name:        "DNS RR",
 	Description: "DNS Resource Record",

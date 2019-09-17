@@ -1,4 +1,4 @@
-// This package manages the databases creation and usage.
+// This package manages the creation and usage of databases.
 package databases
 
 import (
@@ -23,15 +23,14 @@ type Credentials struct {
 	Password string // Password of the database user
 }
 
-// Unmarshals the config defined in viper as a Config struct.
+// GetDBConfig unmarshals the config defined in viper as a Config struct.
 func GetDBConfig(name string) (Config, error) {
 	var dbConf map[string]Config
 	err := viper.UnmarshalKey("databases", &dbConf)
 	return dbConf[name], err
 }
 
-// Rewrites the credentials in "databases" config property, in the given
-// subproperty.
+// WriteDBConf rewrites the credentials in "databases" config property, in the given subproperty.
 func WriteDBConf(db string, conf Config) error {
 	viper.Set(fmt.Sprintf("databases.%s", db), conf)
 	return viper.WriteConfig()

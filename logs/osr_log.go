@@ -10,11 +10,11 @@ import (
 
 // OSRLog defines a custom logger, and adds a path to it.
 type OSRLog struct {
-	*logrus.Logger
-	Path string
+	*logrus.Logger // extends from logrus.Logger
+	Path string // logfile local path
 }
 
-// Creates a new logger with the name and folder path defined in the arguments.
+// NewLog creates a new logger with the name and folder path defined in the arguments.
 func NewLog(name string) (*OSRLog, error) {
 	log := logrus.New()
 	logsPath, err := getLogsPath()
@@ -37,12 +37,12 @@ func NewLog(name string) (*OSRLog, error) {
 	}, nil
 }
 
-// Returns a list of paths to attach if the object is mailed.
+// GetAttachments returns a list of paths to attach if the object is mailed.
 func (log *OSRLog) GetAttachments() []string {
 	return []string{log.Path}
 }
 
-// Creates a log name, with the date and time of the log in the name.
+// createLogName creates a log name, with the date and time of the log in the name.
 func createLogName(name string) string {
 	dateLayout := "2006-01-02_150405.000"
 	return name + "_" + time.Now().Format(dateLayout) + ".log"

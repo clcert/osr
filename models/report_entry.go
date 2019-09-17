@@ -6,12 +6,14 @@ import (
 	"time"
 )
 
-type ReportTypeID int
-
 func init() {
 	DefaultModels.Append(ReportEntryModel)
 	DefaultModels.Append(ReportTypeModel)
 }
+
+
+// ReportTypeID represents the possible types of reports present in the system
+type ReportTypeID int
 
 const (
 	UnknownReport ReportTypeID = iota
@@ -26,6 +28,7 @@ const (
 	SpamReport
 )
 
+// ReportEntryModel contains the metainformation related to the respective model.
 var ReportEntryModel = Model{
 	Name:        "Reported IPs",
 	Description: "List of IPs reported as curious",
@@ -38,6 +41,7 @@ var ReportEntryModel = Model{
 	},
 }
 
+// ReportTypeModel contains the metainformation related to the respective model.
 var ReportTypeModel = Model{
 	Name:                "Report Category",
 	Description:         "A specific category for a report IP entry",
@@ -45,6 +49,7 @@ var ReportTypeModel = Model{
 	AfterCreateFunction: CreateReportTypes,
 }
 
+// ReportEntry represents an entry of an IP report.
 type ReportEntry struct {
 	TaskID       int `sql:",type:bigint"`         // Number of the importer session
 	Task         *Task                            // Task structure

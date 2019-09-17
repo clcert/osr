@@ -4,16 +4,14 @@ import "github.com/go-pg/pg/orm"
 
 func init() {
 	DefaultModels.Append(DomainToCategoryModel)
+	orm.RegisterTable((*DomainToCategory)(nil))
 }
 
+// DomainToCategoryModel contains the metainformation related to the respective model.
 var DomainToCategoryModel = Model{
 	Name:        "Domain To Category",
 	Description: "A join between a domain and a category",
 	StructType:  &DomainToCategory{},
-}
-
-func init() {
-	orm.RegisterTable((*DomainToCategory)(nil))
 }
 
 // This structure defines a category for a internet domain.

@@ -8,6 +8,7 @@ func init() {
 	DefaultModels.Append(DomainModel)
 }
 
+// DomainModel contains the metainformation related to the respective model.
 var DomainModel = Model{
 	Name:        "Domain",
 	Description: "Domains model",

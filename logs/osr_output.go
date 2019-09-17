@@ -8,13 +8,13 @@ import (
 	"time"
 )
 
-// OSROutput defines a file and a path where it is.
+// OSROutput defines a file and a path where the file is.
 type OSROutput struct {
-	io.Writer
+	io.Writer // object of type writer
 	Path string
 }
 
-// Creates a new output with the name and folder path defined in the arguments.
+// NewOutput creates a new output with the name and folder path defined in the arguments.
 // TODO: Join with NewLog
 func NewOutput(folder, name string) (*OSROutput, error) {
 	logsPath, err := getLogsPath()
@@ -38,17 +38,17 @@ func NewOutput(folder, name string) (*OSROutput, error) {
 	}, nil
 }
 
-// Returns a list of paths to attach if the object is mailed.
+// GetAttachments returns a list of paths to attach if the object is mailed.
 func (output *OSROutput) GetAttachments() []string {
 	return []string{output.Path}
 }
 
-// Prints a line into the file.
+// Println prints a line into the file.
 func (output *OSROutput) Println(text string) {
 	_, _ = fmt.Fprintln(output.Writer, text)
 }
 
-// Creates a log name, with the date and time of the log in the name.
+// createOutputName creates a log name, with the date and time of the log in the name.
 func createOutputName(name string) string {
 	dateLayout := "2006-01-02_150405"
 	return name + "_" + time.Now().Format(dateLayout) + ".txt"

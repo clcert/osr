@@ -8,12 +8,12 @@ import (
 	"os"
 )
 
-// Represents an object which could have some attachments.
+// Attachable represents an object which could have some attachments.
 type Attachable interface {
 	GetAttachments() []string
 }
 
-// Represents a notification mail.
+// NotifyMail epresents a notification mail.
 type NotifyMail struct {
 	Title       string       // Title of the mail
 	Template    string       // Template used with the mail

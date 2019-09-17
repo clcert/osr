@@ -11,6 +11,7 @@ func init() {
 	DefaultModels.Append(PortScanModel)
 }
 
+// PortScanModel contains the metainformation related to the respective model.
 var PortScanModel = Model{
 	Name:        "Port Scan",
 	Description: "Port Scans",
@@ -23,13 +24,14 @@ var PortScanModel = Model{
 	},
 }
 
+// PortModel contains the metainformation related to the respective model.
 var PortModel = Model{
 	Name:                "Ports",
 	Description:         "Ports definition",
 	StructType:          &Port{},
 	AfterCreateFunction: createPortDefinitions,
 }
-
+// PortProtocol represents the transport protocol checked in a port scan.
 type PortProtocol int
 
 const (
@@ -38,6 +40,7 @@ const (
 	UDP
 )
 
+// PortScan represents an open protocol port on a machine with an specific IP in a specific time.
 type PortScan struct {
 	TaskID     int `sql:",type:bigint"`                     // Number of the importer session
 	Task       *Task                                        // Task structure
@@ -51,6 +54,7 @@ type PortScan struct {
 	Port       *Port
 }
 
+// Port groups all the scanned ports and their meanings.
 type Port struct {
 	Number      uint16 `sql:",pk,type:smallint"`          // Port number
 	Name        string `sql:",notnull,type:varchar(255)"` // Port service name
@@ -58,6 +62,7 @@ type Port struct {
 }
 
 // TODO: Extract this information from another source
+// createPortDefinitions inserts the used port definitions when port table is created.
 func createPortDefinitions(db *pg.DB) error {
 	ports := []Port{
 		{Number: 21, Name: "FTP", Description: "File Transfer Protocol"},

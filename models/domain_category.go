@@ -6,6 +6,7 @@ func init() {
 	DefaultModels.Append(DomainCategoryModel)
 }
 
+// DomainCategoryModel contains the metainformation related to the respective model.
 var DomainCategoryModel = Model{
 	Name:                "Domain Category",
 	Description:         "Category for a Domain",
@@ -20,6 +21,7 @@ type DomainCategory struct {
 	Description string                               // Short of the category
 }
 
+// createDomainCategories initializes the domain categories available on the system
 func createDomainCategories(db *pg.DB) error {
 	categories := []DomainCategory{
 		{Slug: "gov", Name: "Government", Description: "Government Domains"},

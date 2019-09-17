@@ -10,6 +10,7 @@ func init() {
 	DefaultModels.Append(DarknetPacketModel)
 }
 
+// DarknetPacketModel contains the metainformation related to the respective model.
 var DarknetPacketModel = Model{
 	Name:        "Darknet Packet",
 	Description: "Darknet Packet Model",
@@ -20,14 +21,15 @@ var DarknetPacketModel = Model{
 	},
 }
 
+// DarknetPacket represents the TCP/IP headers of a darknet packet.
 type DarknetPacket struct {
-	Hash       string
-	TaskID     int `sql:",notnull,type:bigint"`
-	Task       *Task
-	SourceID   DataSourceID `sql:",pk,type:bigint"`
-	Source     *Source
-	Count      uint32    `sql:",notnull,type:bigint"`
-	Time       time.Time `sql:",pk"`
+	Hash       string // Hash of the package, useful for repetition detection
+	TaskID     int `sql:",notnull,type:bigint"` // ID of related task
+	Task       *Task // Task oObject
+	SourceID   DataSourceID `sql:",pk,type:bigint"` // ID of source
+	Source     *Source // Source object
+	Count      uint32    `sql:",notnull,type:bigint"` // Number of received packets
+	Time       time.Time `sql:",pk"` // Time of package reception
 	Ihl        uint32    `sql:",notnull"`
 	Tos        uint32    `sql:",notnull"`
 	Length     uint32    `sql:",notnull"`
@@ -58,6 +60,7 @@ type DarknetPacket struct {
 	Cwr        bool      `sql:",notnull"`
 }
 
+// String shows a text representation of the package.
 func (darknetPacket DarknetPacket) String() string {
 	return fmt.Sprintf("Address packet<%+v %+v %d %+v %d>\n", darknetPacket.Time, darknetPacket.SrcIP, darknetPacket.SrcPort, darknetPacket.DstIP, darknetPacket.DstPort)
 }

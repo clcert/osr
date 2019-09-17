@@ -10,6 +10,7 @@ func init() {
 	DefaultModels.Append(BlacklistedSubnetModel)
 }
 
+// BlacklistedSubnetModel contains the metainformation related to the respective model.
 var BlacklistedSubnetModel = Model{
 	Name:                "Blacklisted Sub Networks",
 	Description:         "Subnetworks that we are not allowed to check",
@@ -20,7 +21,7 @@ var BlacklistedSubnetModel = Model{
 	},
 }
 
-
+// BlacklistedSubnet represents a subnet tthat we must not scan.
 type BlacklistedSubnet struct {
 	// Task structure
 	DateAdded   time.Time `sql:",notnull,default:now()"` // Date of the blacklisted element submission
@@ -28,9 +29,8 @@ type BlacklistedSubnet struct {
 	Reason      string     `sql:",type:varchar(255)"` // Reason for blacklisting
 }
 
-// TODO: Extract this information from another source
+// DefaultBlacklistSubnets inserts the reserved ranges of subnets to the database when it is created.
 func defaultBlacklistSubnets(db *pg.DB) error {
-
 	reservedSubnets := [][3]string{
 		{"2013-05-22", "0.0.0.0/8", "RFC1122: This host on this network"},
 		{"2013-05-22", "10.0.0.0/8", "RFC1918: Private-Use"},

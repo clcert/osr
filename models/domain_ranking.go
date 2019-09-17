@@ -4,6 +4,7 @@ func init() {
 	DefaultModels.Append(DomainRankingModel)
 }
 
+// DomainRankingModel contains the metainformation related to the respective model.
 var DomainRankingModel = Model{
 	Name:        "Domain Ranking",
 	Description: "Ranking based on Alexa Top 1M",
