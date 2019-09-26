@@ -37,10 +37,11 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP net.IP) error {
 	date, err := parseDate(file.Name())
 	if err != nil {
+		date = time.Now()
 		args.Log.WithFields(logrus.Fields{
 			"file_name": file.Name(),
+			"current_date": date,
 		}).Error("Couldn't determine date. Using current date and time...")
-		date = time.Now()
 	}
 	reader, err := file.Open()
 	if err != nil {
