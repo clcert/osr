@@ -35,7 +35,13 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 }
 
 func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP net.IP) error {
-	date := parseDate(file.Dir())
+	date, err := parseDate(file.Name())
+	if err != nil {
+		args.Log.WithFields(logrus.Fields{
+			"file_name": file.Name(),
+		}).Error("Couldn't determine date. Using current date and time...")
+		date = time.Now()
+	}
 	reader, err := file.Open()
 	if err != nil {
 		return err
@@ -79,17 +85,13 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 	return file.Close()
 }
 
-func parseDate(dir string) (date time.Time) {
-	var err error
+func parseDate(dir string) (date time.Time, err error) {
 	dirSlice := strings.Split(dir, "/")
 	for i := len(dirSlice) - 1; i >= 0; i-- {
 		date, err = time.Parse(DateFormat, dirSlice[i])
 		if err == nil && !date.IsZero() {
 			break
 		}
-	}
-	if err != nil {
-		date = time.Now()
 	}
 	return
 }
