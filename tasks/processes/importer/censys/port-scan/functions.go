@@ -87,14 +87,8 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 }
 
 func parseDate(dir string) (date time.Time, err error) {
-	dirSlice := strings.Split(dir, "/")
-	for i := len(dirSlice) - 1; i >= 0; i-- {
-		date, err = time.Parse(DateFormat, dirSlice[i])
-		if err == nil && !date.IsZero() {
-			break
-		}
-	}
-	return
+	dirSlice := strings.Split(dir, ".")
+	return time.Parse(DateFormat, dirSlice[0])
 }
 
 // returns UDP if the port scanned is related to an UDP protocol.

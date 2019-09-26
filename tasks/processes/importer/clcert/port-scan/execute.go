@@ -4,7 +4,7 @@ import (
 	"github.com/clcert/osr/tasks"
 )
 
-const DateFolderFormat = "2006-01-02"
+const DateFormat = "2006-01-02"
 
 // This function reads a remote server and savers all the
 // results contained in folders with a signal empty file.
