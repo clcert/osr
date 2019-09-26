@@ -66,7 +66,18 @@ func (config Config) New(name string, params utils.Params) (Saver, error) {
 
 // Returns true if savable has a struct
 func (savable *Savable) IsStruct() bool {
-	return reflect.ValueOf(savable.Object).Kind() == reflect.Struct
+	r := reflect.ValueOf(savable.Object)
+	for {
+		switch r.Kind() {
+		case reflect.Struct:
+			return true
+		case reflect.Ptr:
+			r = r.Elem()
+			continue
+		default:
+			return false
+		}
+	}
 }
 
 // Returns true if savable has a map of strings to strings
