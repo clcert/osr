@@ -57,7 +57,7 @@ type PortScan struct {
 
 // Protocol groups all the scanned ports and their meanings.
 type Port struct {
-	Number      uint16 `sql:",pk,type:smallint"`          // Protocol number
+	Number      uint16 `sql:",pk,type:bigint"`          // Protocol number
 	Name        string `sql:",notnull,type:varchar(255)"` // Protocol service name
 	Description string // Protocol service description
 }
