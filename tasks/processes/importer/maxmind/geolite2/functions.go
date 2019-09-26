@@ -254,7 +254,7 @@ func saveASNSubnets(entry sources.Entry, saver savers.Saver, args *tasks.Args) e
 		if err != nil {
 			args.Log.WithFields(logrus.Fields{
 				"asnID": rec[1],
-			}).Error("Err converting ASN Number")
+			}).Error("Err converting AS Number")
 			return err
 		}
 		if err := saver.Save(&models.SubnetASN{

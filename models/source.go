@@ -14,6 +14,7 @@ const (
 	Alexa
 	Source1
 	Source2
+	Censys
 )
 
 var SourceModel = Model{
@@ -78,6 +79,11 @@ func createSources(db *pg.DB) error {
 			ID:          Source2,
 			Name:        "Reserved Source #2",
 			Description: "Closed Source, providers of some daily scans.",
+		},
+		{
+			ID:          Censys,
+			Name:        "Censys",
+			Description: "Censys Scans.",
 		},
 	}
 	_, err := db.Model(&sources).OnConflict("DO NOTHING").Insert()

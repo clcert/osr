@@ -13,7 +13,6 @@ require (
 	github.com/jordan-wright/email v0.0.0-20190218024454-3ea4d25e7cf8
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/lib/pq v1.0.0
-	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/pkg/sftp v1.10.0
 	github.com/sirupsen/logrus v1.4.2

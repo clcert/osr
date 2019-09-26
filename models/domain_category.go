@@ -16,7 +16,7 @@ var DomainCategoryModel = Model{
 
 // This structure defines a category for a internet domain.
 type DomainCategory struct {
-	Slug        string `sql:",pk,type:varchar(255)"` // Numerical Number of the category
+	Slug        string `sql:",pk,type:varchar(255)"` // Numerical name of the category
 	Name        string                               // name of the category
 	Description string                               // Short of the category
 }

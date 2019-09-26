@@ -24,6 +24,6 @@ type DomainToCategory struct {
 	DomainName         string `sql:",pk,notnull,type:varchar(255)"` // Domain name of the domain being categorized
 	DomainTLD          string `sql:",pk,notnull,type:varchar(255)"` // Domain tld of the domain being categorized
 	Domain             Domain                                       // Domain (Actually, FQDN) scanned
-	DomainCategorySlug string `sql:",pk,type:varchar(255)"`         // Numerical Number of the category
+	DomainCategorySlug string `sql:",pk,type:varchar(255)"`         // Numerical name of the category
 	DomainCategory     *DomainCategory
 }

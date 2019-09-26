@@ -47,6 +47,10 @@ func NewRegex(args *tasks.Args) (regexes *Regexes, err error) {
 }
 
 func (regex *Regexes) GetPort(name string) (uint16, error) {
+	nameArr := strings.Split(name, "port")
+	if len(nameArr) > 1 {
+		name = nameArr[len(nameArr) - 1] // Protocol is into the last part of the name, after the "port" string
+	}
 	portNumberStr := regex.Port.FindString(name)
 	if len(portNumberStr) == 0 {
 		return 0, fmt.Errorf("port not found in name")
