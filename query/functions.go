@@ -3,6 +3,7 @@ package query
 import (
 	"github.com/clcert/osr/databases"
 	"github.com/clcert/osr/logs"
+	"github.com/clcert/osr/utils"
 	"github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
@@ -10,12 +11,12 @@ import (
 )
 
 // Export executes queries defined in inFolder. If whitelist is not empty, it uses only the queries of it.
-func Execute(queryFiles []string, outFolder string, whitelist []string, headers bool) error {
+func Execute(queryFiles []string, outFolder string, whitelist []string, headers bool, params []string) error {
 	db, err := databases.GetPostgresReader()
 	if err != nil {
 		return err
 	}
-
+	cmdParams := utils.ListToParams(params)
 	for _, queryFile := range queryFiles {
 
 		logs.Log.WithFields(logrus.Fields{
@@ -28,7 +29,7 @@ func Execute(queryFiles []string, outFolder string, whitelist []string, headers 
 		if err := os.MkdirAll(outFolderPath, 0755); err != nil {
 			return err
 		}
-		queries, err := OpenFile(queryFile, whitelist, nil)
+		queries, err := OpenFile(queryFile, whitelist, cmdParams)
 		if err != nil {
 			return err
 		}

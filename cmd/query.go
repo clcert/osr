@@ -19,8 +19,10 @@ func init() {
 	RawQueryCmd.Flags().StringSliceVarP(&queries, "queries", "q", []string{}, "whitelisted query names. Default is all.")
 	
 	RawQueryCmd.Flags().BoolVarP(&headers, "headers", "H", false, "Output CSV with column headers.")
+
+	TaskCmd.Flags().StringSliceVarP(&params, "params", "p", []string{}, "Parameters")
+
 	_ = RawQueryCmd.MarkFlagRequired("input-files")
-	_ = RawQueryCmd.MarkFlagRequired("output-folder")
 }
 
 // Models command groups all importer related to models.
@@ -29,7 +31,7 @@ var RawQueryCmd = &cobra.Command{
 	Short: "executes PGSql queries from YAML files",
 	Long:  "executes PGSql queries from YAML files",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := query.Execute(inFiles, outFolder, queries, headers)
+		err := query.Execute(inFiles, outFolder, queries, headers, params)
 		if err != nil {
 			panic(&panics.Info{
 				Text:        "fatal error executing the raw query",
