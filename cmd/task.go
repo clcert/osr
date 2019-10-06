@@ -15,7 +15,6 @@ var params []string
 
 func init() {
 	TaskCmd.Flags().StringSliceVarP(&params, "params", "p", []string{}, "Parameters")
-
 }
 
 // Process executes a batch of process defined in a conf file.

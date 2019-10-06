@@ -20,7 +20,7 @@ func init() {
 	
 	RawQueryCmd.Flags().BoolVarP(&headers, "headers", "H", false, "Output CSV with column headers.")
 
-	TaskCmd.Flags().StringSliceVarP(&params, "params", "p", []string{}, "Parameters")
+	RawQueryCmd.Flags().StringSliceVarP(&params, "params", "p", []string{}, "Parameters")
 
 	_ = RawQueryCmd.MarkFlagRequired("input-files")
 }

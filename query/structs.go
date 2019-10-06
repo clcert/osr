@@ -46,9 +46,9 @@ func (entry *Query) Export(db *pg.DB, file io.Writer, headers bool) error {
 		"description": entry.Description,
 	}).Info("Executing query...")
 
-	stmt := "COPY (" + entry.SQL + ") TO STDOUT"
+	stmt := "COPY (" + entry.SQL + ") TO STDOUT WITH CSV"
 	if headers {
-		stmt += " WITH CSV HEADER"
+		stmt += " HEADER"
 	}
 	result, err := db.CopyTo(file, stmt)
 	if err != nil {
