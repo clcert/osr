@@ -2,7 +2,6 @@ package port_scan
 
 import (
 	"bufio"
-	"fmt"
 	"github.com/clcert/osr/models"
 	"github.com/clcert/osr/savers"
 	"github.com/clcert/osr/sources"
@@ -59,11 +58,33 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 		Protocol:    protocol,
 	}
 	for scanner.Scan() {
-		if err := insertWithParser(saver, scanner.Text(), options); err != nil {
+		entry, err := options.Unmarshal(line)
+		if err != nil {
 			args.Log.WithFields(logrus.Fields{
 				"file_path": file.Path(),
 				"line":      scanner.Text(),
-			}).Error("Error parsing line, skipping...")
+			}).Error("Error unmarshaling line, skipping...")
+			continue
+		}
+		if err = saver.Save(&models.PortScan{
+			TaskID:         args.Task.ID,
+			SourceID:       args.Process.Source,
+			Date:           entry.GetBasicEntry().GetTime(DateFormat, options.DefaultDate),
+			ScanIP:         srcIP,
+			IP:             entry.GetBasicEntry().GetIP(),
+			PortNumber:     port,
+			Protocol:       getTransport(port),
+			ServiceActive:  true, // Todo determine this
+			ServiceName:    entry.GetSoftware(),
+			ServiceVersion: entry.GetVersion(),
+			ServiceExtra:   entry.GetExtra(),
+		}); err != nil {
+			args.Log.WithFields(logrus.Fields{
+				"file_path": file.Path(),
+				"ip": ip,
+				"port": port,
+			}).Error("Couldn't save entry: %s", err)
+			continue
 		}
 	}
 	return file.Close()
@@ -97,15 +118,4 @@ func getTransport(port uint16) models.PortProtocol {
 	default:
 		return models.TCP
 	}
-}
-
-
-func insertWithParser(saver savers.Saver, line string, options *ParserOptions) error {
-	if options == nil {
-		return fmt.Errorf("option cannot be blank")
-	}
-	if _, ok := parsers[options.Protocol]; !ok {
-		return fmt.Errorf("parser not found for protocol %s", options.Protocol)
-	}
-	return parsers[options.Protocol](saver, line, options)
 }
