@@ -1,6 +1,6 @@
 package grabber
 
-// CertProtocols shows the supported HTTPS protocols of a scan
+// CertProtocols shows the supported HTTPS protocol_parser of a scan
 type CertProtocols struct {
 	SSL30 bool `json:"SSL_30"`
 	TLS10 bool `json:"TLS_10"`
@@ -28,6 +28,6 @@ type HeartbleedData struct {
 type CertMeta struct {
 	HeartbleedData                   `json:"heartbleedData"`// Status on Heartbleed
 	Chain          []Certificate     `json:"chain"`// Array of certificates representing the Certificate Chain of Trust
-	Protocols      CertProtocols     `json:"protocols"`// Certificate protocols available
+	Protocols      CertProtocols     `json:"protocol_parser"`// Certificate protocol_parser available
 	CiphersSuites  map[string]string `json:"ciphersSuites"`// Cipher suites available
 }
