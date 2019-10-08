@@ -19,6 +19,11 @@ type HTTPParser struct {
 	inited bool
 }
 
+// HTTP is always valid, after all we got to connect correctly
+func (p *HTTPParser) IsValid(string) interface{} {
+	return true
+}
+
 // init prepares the parser for its use.
 // It should be automatically executed as first method of getVersion and getSoftware.
 func (p *HTTPParser) init() {

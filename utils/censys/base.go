@@ -10,6 +10,7 @@ type Entry interface {
 	GetSoftware() string
 	GetVersion() string
 	GetExtra() string
+	IsValid() string
 }
 
 type BasicEntry struct {

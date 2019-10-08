@@ -18,6 +18,10 @@ type SSHParser struct {
 	inited        bool
 }
 
+func (p *SSHParser) IsValid(banner string) bool {
+	return len(banner) >= 3 && banner[:3] == "SSH"
+}
+
 // init prepares the parser for its use.
 // It should be automatically executed as first method of getVersion and getSoftware.
 func (p *SSHParser) init() {

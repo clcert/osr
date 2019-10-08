@@ -22,6 +22,11 @@ type IMAPParser struct {
 	inited bool
 }
 
+// If message starts with * OK, almost certainly is a SSH server
+func (p *IMAPParser) IsValid(banner string) bool {
+	return len(banner) >= 4 && banner[:4] == "* OK"
+}
+
 // init prepares the parser for its use.
 // It should be automatically executed as first method of getVersion and getSoftware.
 func (p *IMAPParser) init() {

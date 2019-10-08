@@ -74,7 +74,7 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 			IP:             entry.GetBasicEntry().GetIP(),
 			PortNumber:     port,
 			Protocol:       getTransport(port),
-			ServiceActive:  true, // Todo determine this
+			ServiceActive:  entry., // Todo determine this
 			ServiceName:    entry.GetSoftware(),
 			ServiceVersion: entry.GetVersion(),
 			ServiceExtra:   entry.GetExtra(),

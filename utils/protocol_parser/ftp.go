@@ -22,6 +22,12 @@ type FTPParser struct {
 	inited  bool
 }
 
+// If message starts with 220, almost certainly is a SSH server
+func (p *FTPParser) IsValid(banner string) bool {
+	return len(banner) >= 3 && banner[:3] == "220"
+}
+
+
 // init prepares the parser for its use.
 // It should be automatically executed as first method of getVersion and getSoftware.
 func (p *FTPParser) init() {

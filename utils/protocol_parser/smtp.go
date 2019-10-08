@@ -20,6 +20,11 @@ type SMTPParser struct {
 	inited bool
 }
 
+// If message starts with 220, almost certainly is a SFTP server
+func (p *SMTPParser) IsValid(banner string) bool {
+	return len(banner) >= 3 && banner[:3] == "220"
+}
+
 // init prepares the parser for its use.
 // It should be automatically executed as first method of getVersion and getSoftware.
 func (p *SMTPParser) init() {
