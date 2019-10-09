@@ -13,7 +13,7 @@ var ContactModel = Model{
 }
 
 type Contact struct {
-	Id               string	   `sql:",pk"`
+	Id               string	   `sql:",pk,type:varchar(32)"` // Contact ID
 	Name             string    `sql:",notnull,type:varchar(255)"` // Contact name
 	Position         string    `sql:",notnull,type:varchar(255)"` // Contact position
 	LandlinePhone    string    `sql:",type:varchar(11)"`          // Contact Landline Phone

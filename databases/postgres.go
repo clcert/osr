@@ -11,7 +11,7 @@ import (
 
 // NewPostgresUser creates a new postgres user using the given DB connection, with a given username and a list of default table and sequence permissions.
 // If the user already exists, it finishes with an error
-func NewPostgresUser(db *pg.DB, username string, tablePermissions []string, seqPermissions []string) (*Credentials, error) {
+func NewPostgresUser(db *pg.DB, username string, tablePermissions, seqPermissions []string) (*Credentials, error) {
 	creds := Credentials{
 		Username: username,
 		Password: utils.GenerateRandomString(24),
