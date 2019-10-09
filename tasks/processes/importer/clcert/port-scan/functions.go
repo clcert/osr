@@ -7,6 +7,7 @@ import (
 	"github.com/clcert/osr/savers"
 	"github.com/clcert/osr/sources"
 	"github.com/clcert/osr/tasks"
+	"github.com/clcert/osr/utils/grabber"
 	"github.com/sirupsen/logrus"
 	"net"
 	"strconv"
@@ -22,12 +23,6 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 	srcIPStr := strings.Split(srcAddr, ":")[0]
 	srcIP := net.ParseIP(srcIPStr)
 	filesRead := 0
-	regex, err := NewRegex(args)
-	if err != nil {
-		args.Log.WithFields(logrus.Fields{
-			"params": args.Params,
-		}).Error("couldn't create regexes: %s", err)
-	}
 	for {
 		file := source.Next()
 		if file == nil {
@@ -36,7 +31,7 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 		args.Log.WithFields(logrus.Fields{
 			"files_read": filesRead,
 		}).Info("Reading files...")
-		err := parseFile(file, saver, args, srcIP, regex)
+		err := parseFile(file, saver, args, srcIP)
 		if err != nil {
 			args.Log.WithFields(logrus.Fields{
 				"file_path": file.Path(),
@@ -46,8 +41,8 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 	}
 }
 
-func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP net.IP, regex *Regexes) error {
-	date, err := parseDate(file.Dir())
+func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP net.IP) error {
+	date, err := grabber.ParseDate(file.Dir(), DateFormat)
 	if err != nil {
 		date = time.Now()
 		args.Log.WithFields(logrus.Fields{
@@ -72,13 +67,13 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 		}
 	}
 	if port == 0 {
-		port, err = regex.GetPort(file.Name())
+		port, err = grabber.ParsePort(file.Name())
 		if err != nil {
 			file.Close()
 			return fmt.Errorf("couldn't get port number from filename: %s", err)
 		}
 	}
-	protocol := regex.GetProtocol(file.Path())
+	protocol := grabber.ParseProtocol(file.Path())
 	for scanner.Scan() {
 		ip := net.ParseIP(scanner.Text())
 		if ip == nil {
@@ -106,16 +101,5 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 		}
 	}
 	return file.Close()
-}
-
-func parseDate(dir string) (date time.Time, err error) {
-	dirSlice := strings.Split(dir, "/")
-	for i := len(dirSlice) - 1; i >= 0; i-- {
-		date, err = time.Parse(DateFormat, dirSlice[i])
-		if err == nil && !date.IsZero() {
-			break
-		}
-	}
-	return
 }
 

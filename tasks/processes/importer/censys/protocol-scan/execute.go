@@ -1,4 +1,4 @@
-package port_scan
+package protocol_scan
 
 import (
 	"github.com/clcert/osr/tasks"

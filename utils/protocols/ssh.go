@@ -1,4 +1,4 @@
-package protocol_parser
+package protocols
 
 import (
 	"fmt"

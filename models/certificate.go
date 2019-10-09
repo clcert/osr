@@ -51,7 +51,7 @@ type Certificate struct {
 	Port               *Port
 	IsAutosigned       bool                    `sql:"default:false"` // True if it is autosigned
 	KeySize            bool                    // Key Size
-	ExpDate            time.Time               // Expiration Date
+	ExpirationDate     time.Time               // Expiration Date
 	OrganizationName   string                  // Organization Name
 	OrganizationURL    string                  // Organization URL
 	Authority          string                  // Certificate Authority

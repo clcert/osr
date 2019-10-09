@@ -37,7 +37,7 @@ type PortScan struct {
 	PortNumber     uint16       `sql:",pk,type:bigint"` // Protocol number scanned
 	Protocol       PortProtocol `sql:",pk,type:smallint,notnull"`
 	Port           *Port
-	ServiceActive  bool         `sql:"notnull,default:false"`
+	ServiceActive  bool `sql:",notnull,default:false"`
 	ServiceName    string
 	ServiceVersion string
 	ServiceExtra   string

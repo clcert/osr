@@ -7,6 +7,7 @@ import (
 	"github.com/clcert/osr/savers"
 	"github.com/clcert/osr/sources"
 	"github.com/clcert/osr/tasks"
+	"github.com/clcert/osr/utils/protocols"
 	"github.com/sirupsen/logrus"
 	"net"
 	"strings"
@@ -72,7 +73,7 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 				ScanIP:     srcIP,
 				IP:         ip,
 				Date:       date,
-				Protocol:   getTransport(port),
+				Protocol:   protocols.GetTransport(port),
 			}); err != nil {
 				args.Log.WithFields(logrus.Fields{
 					"file_path": file.Path(),
@@ -91,12 +92,3 @@ func parseDate(dir string) (date time.Time, err error) {
 	return time.Parse(DateFormat, dirSlice[0])
 }
 
-// returns UDP if the port scanned is related to an UDP protocol.
-func getTransport(port uint16) models.PortProtocol {
-	switch port {
-	case 53, 623, 1900, 20000, 47808:
-		return models.UDP
-	default:
-		return models.TCP
-	}
-}

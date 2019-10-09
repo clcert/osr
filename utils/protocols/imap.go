@@ -1,4 +1,4 @@
-package protocol_parser
+package protocols
 
 import (
 	"fmt"
@@ -24,6 +24,7 @@ type IMAPParser struct {
 
 // If message starts with * OK, almost certainly is a SSH server
 func (p *IMAPParser) IsValid(banner string) bool {
+	p.init()
 	return len(banner) >= 4 && banner[:4] == "* OK"
 }
 

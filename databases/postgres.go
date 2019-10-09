@@ -48,7 +48,7 @@ func NewPostgresUser(db *pg.DB, username string, tablePermissions []string, seqP
 		return nil, err
 	}
 	if _, err := db.Exec(
-		fmt.Sprintf("GRANT %s ON ALL TABLES IN SCHEMA public TO %s;",
+		fmt.Sprintf("GRANT %s ON ALL TABLES IN SCHEMA public TO %s",
 			strings.Join(tablePermissions, ", "), creds.Username)); err != nil {
 		logs.Log.WithFields(logrus.Fields{
 			"username": username,
@@ -56,7 +56,7 @@ func NewPostgresUser(db *pg.DB, username string, tablePermissions []string, seqP
 		return nil, err
 	}
 	if _, err := db.Exec(
-		fmt.Sprintf("GRANT %s ON ALL SEQUENCES IN SCHEMA public TO %s;",
+		fmt.Sprintf("GRANT %s ON ALL SEQUENCES IN SCHEMA public TO %s",
 			strings.Join(seqPermissions, ", "), creds.Username)); err != nil {
 		logs.Log.WithFields(logrus.Fields{
 			"username": username,
@@ -64,15 +64,15 @@ func NewPostgresUser(db *pg.DB, username string, tablePermissions []string, seqP
 		return nil, err
 	}
 	if _, err := db.Exec(
-		fmt.Sprintf("ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT %s ON TABLES TO %s;",
+		fmt.Sprintf("ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT %s ON TABLES TO %s",
 			strings.Join(tablePermissions, ", "), creds.Username)); err != nil {
 		logs.Log.WithFields(logrus.Fields{
 			"username": username,
-		}).Errorf("default rivileges config (sequences) failed: %s", err)
+		}).Errorf("default privileges config (sequences) failed: %s", err)
 		return nil, err
 	}
 	if _, err := db.Exec(
-		fmt.Sprintf("ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT %s ON SEQUENCES TO %s;",
+		fmt.Sprintf("ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT %s ON SEQUENCES TO %s",
 			strings.Join(seqPermissions, ", "), creds.Username)); err != nil {
 		logs.Log.WithFields(logrus.Fields{
 			"username": username,

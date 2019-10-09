@@ -1,4 +1,4 @@
-package protocol_scan
+package grabber_protocol_scan
 
 import (
 	"bufio"
@@ -8,16 +8,21 @@ import (
 	"github.com/clcert/osr/sources"
 	"github.com/clcert/osr/tasks"
 	"github.com/clcert/osr/utils/censys"
+	"github.com/clcert/osr/utils/grabber"
 	"github.com/clcert/osr/utils/protocols"
 	"github.com/sirupsen/logrus"
 	"net"
-	"strconv"
 	"strings"
 	"time"
 )
 
 func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) error {
-	srcIP := net.ParseIP("216.239.34.21") // Censys.io IP. NOT SCANNING IP!
+	srcAddr, err := source.GetID()
+	if err != nil {
+		return err
+	}
+	srcIPStr := strings.Split(srcAddr, ":")[0]
+	srcIP := net.ParseIP(srcIPStr)
 	filesRead := 0
 	for {
 		file := source.Next()
@@ -41,7 +46,7 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 	date, port, protocol, err := parseMeta(file)
 	if err != nil {
 		args.Log.WithFields(logrus.Fields{
-			"file_name": file.Name(),
+			"file_name":    file.Name(),
 			"current_date": date,
 		}).Error("Couldn't determine date, port and protocol. Skipping file...")
 		return err
@@ -80,7 +85,7 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 			ScanIP:         srcIP,
 			IP:             entry.GetIP(),
 			PortNumber:     port,
-			Protocol:       protocols.GetTransport(port),
+			Protocol:       getTransport(port),
 			ServiceActive:  parser.IsValid(entry.GetBanner()),
 			ServiceName:    parser.GetSoftware(entry.GetBanner()),
 			ServiceVersion: parser.GetVersion(entry.GetBanner()),
@@ -88,8 +93,8 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 		}); err != nil {
 			args.Log.WithFields(logrus.Fields{
 				"file_path": file.Path(),
-				"ip": entry.GetIP(),
-				"port": port,
+				"ip":        entry.GetIP(),
+				"port":      port,
 			}).Error("Couldn't save entry: %s", err)
 			continue
 		}
@@ -97,24 +102,29 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 	return file.Close()
 }
 
-func parseMeta(source sources.Entry) (date time.Time, port uint16, protocol string, err error) {
-	slice1 := strings.Split(source.Name(), ".")
-	slice2 := strings.Split(slice1[0], "_")
-	date, err = time.Parse(slice2[0],"2006-01-02")
+func parseMeta(file sources.Entry) (date time.Time, port uint16, protocol string, err error) {
+	date, err = grabber.ParseDate(file.Path(), "20060102")
 	if err != nil {
 		return
 	}
-	if len(slice2) >= 2 {
-		var port64 int64
-		port64, err = strconv.ParseInt(slice2[1], 10, 32)
-		if err != nil {
-			return
-		}
-		port = uint16(port64)
+	port, err = grabber.ParsePort(file.Name())
+	if err != nil {
+		return
 	}
-	if len(slice2) >= 3 {
-		protocol = slice2[2]
+	protocol, ok := protocols.PortToProtocol[port]
+	if !ok {
+		err = fmt.Errorf("unknown protocol for port %s", port)
+		return
 	}
 	return
 }
 
+// returns UDP if the port scanned is related to an UDP protocol.
+func getTransport(port uint16) models.PortProtocol {
+	switch port {
+	case 53, 623, 1900, 20000, 47808:
+		return models.UDP
+	default:
+		return models.TCP
+	}
+}

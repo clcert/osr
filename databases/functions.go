@@ -13,25 +13,37 @@ import (
 	"syscall"
 )
 
-// GetDBNConfigData asks interactively for Postgres config parameters.
+// GetDBConfigData asks interactively for Postgres config parameters.
 // It asks first for DB connection data and the name for the new DB to create.
 // It also asks for admin user credenmtials, used only once.
 func GetDBConfigData() error {
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Println("Please enter the address and port of the PostgresDB:")
-	fmt.Print("Address: ")
+	fmt.Print("Address: [localhost] ")
 	scanner.Scan()
 	address := scanner.Text()
-	fmt.Print("Port: ")
+	if len(address) == 0 {
+		address = "localhost"
+	}
+	fmt.Print("Port: [5432] ")
 	scanner.Scan()
 	port := scanner.Text()
-	fmt.Print("Database name: ")
+	if len(port) == 0 {
+		port = "5432"
+	}
+	fmt.Print("Database Name: [osr] ")
 	scanner.Scan()
 	dbname := scanner.Text()
+	if len(dbname) == 0 {
+		dbname = "osr"
+	}
 	fmt.Println("Please enter the username and password of the admin user of the Postgres DB:")
-	fmt.Print("Username: ")
+	fmt.Print("Username: [postgres] ")
 	scanner.Scan()
 	username := scanner.Text()
+	if len(username) == 0 {
+		username = "postgres"
+	}
 	fmt.Print("Password (hidden): ")
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {

@@ -1,4 +1,4 @@
-package protocol_parser
+package protocols
 
 import (
 	"fmt"
@@ -20,7 +20,8 @@ type HTTPParser struct {
 }
 
 // HTTP is always valid, after all we got to connect correctly
-func (p *HTTPParser) IsValid(string) interface{} {
+func (p *HTTPParser) IsValid(string) bool {
+	p.init()
 	return true
 }
 

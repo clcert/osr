@@ -1,4 +1,4 @@
-package protocol_parser
+package protocols
 
 import (
 	"fmt"
@@ -24,6 +24,7 @@ type FTPParser struct {
 
 // If message starts with 220, almost certainly is a SSH server
 func (p *FTPParser) IsValid(banner string) bool {
+	p.init()
 	return len(banner) >= 3 && banner[:3] == "220"
 }
 

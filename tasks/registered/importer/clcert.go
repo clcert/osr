@@ -6,6 +6,7 @@ import (
 	chilean_dns "github.com/clcert/osr/tasks/processes/importer/clcert/chilean-dns"
 	"github.com/clcert/osr/tasks/processes/importer/clcert/darknet"
 	domain_categories "github.com/clcert/osr/tasks/processes/importer/clcert/domain-categories"
+	grabber_protocol_scan "github.com/clcert/osr/tasks/processes/importer/clcert/grabber-protocol-scan"
 	port_scan "github.com/clcert/osr/tasks/processes/importer/clcert/port-scan"
 )
 
@@ -48,6 +49,16 @@ func init() {
 			URL:         "",
 			Source:      models.CLCERT,
 			Execute:     port_scan.Execute,
+			NumSources:  1,
+			NumSavers:   1,
+		},
+		&tasks.Process{
+			Name:        "CLCERT Grabber Protocol Scan",
+			Command:     "import/clcert-grabber-protocol-scan",
+			Description: "Imports protocol scans locally made.",
+			URL:         "",
+			Source:      models.CLCERT,
+			Execute:     grabber_protocol_scan.Execute,
 			NumSources:  1,
 			NumSavers:   1,
 		},

@@ -1,7 +1,11 @@
 package grabber
 
-// FTPFile represents a scan of a FTP server
-type FTPFile struct {
-	BaseFile
+// FTPEntry represents a scan of a FTP server
+type FTPEntry struct {
+	BaseEntry
 	Banner string `json:"banner"` // Protocol banner
+}
+
+func (e *FTPEntry) GetBanner() string {
+	return e.Banner
 }

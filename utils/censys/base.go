@@ -5,14 +5,6 @@ import (
 	"time"
 )
 
-type Entry interface {
-	GetBasicEntry() *BasicEntry
-	GetSoftware() string
-	GetVersion() string
-	GetExtra() string
-	IsValid() string
-}
-
 type BasicEntry struct {
 	Timestamp string `json:"timestamp"`
 	IP        string `json:"ip"`
