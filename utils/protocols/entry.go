@@ -11,7 +11,7 @@ type Entry interface {
 	GetTime(string, time.Time) time.Time
 	GetError() error
 	GetBanner() string
-	GetCertificate() Certificate
+	GetCertificate() (Certificate, error)
 }
 
 type Certificate interface {

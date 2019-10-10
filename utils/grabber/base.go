@@ -31,6 +31,9 @@ func (e *BaseEntry) GetError() error {
 	return fmt.Errorf(e.Error)
 }
 
-func (e *BaseEntry) GetCertificate() protocols.Certificate {
-	return e.CertMeta
+func (e *BaseEntry) GetCertificate() (protocols.Certificate, error) {
+	if e.CertMeta == nil {
+		return nil, fmt.Errorf("cert not found")
+	}
+	return e.CertMeta, nil
 }

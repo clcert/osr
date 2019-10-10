@@ -21,6 +21,8 @@ var PortToProtocol = map[uint16]string{
 	465:  "smtp",
 	110:  "pop3",
 	995:  "pop3",
+	143:  "imap",
+	993:  "imap",
 }
 
 var ProtocolToPorts = map[string][]uint16{

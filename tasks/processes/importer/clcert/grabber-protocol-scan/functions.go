@@ -55,8 +55,8 @@ func parseFile(file sources.Entry, args *tasks.Args, srcIP net.IP) error {
 		if entry.GetError() != nil {
 			continue
 		}
-		cert := entry.GetCertificate()
-		if len(args.Savers) == 2 && cert != nil {
+		cert, err := entry.GetCertificate()
+		if err == nil {
 			if err = saver.Save(&models.Certificate{
 				TaskID:             args.Task.ID,
 				SourceID:           args.Process.Source,
@@ -81,7 +81,7 @@ func parseFile(file sources.Entry, args *tasks.Args, srcIP net.IP) error {
 				continue
 			}
 		}
-		if strings.Contains(file.Name(), "certificate") {
+		if strings.Contains(file.Path(), "certificate") {
 			continue // File contains only certificates
 		}
 		software, version := parser.GetSoftwareAndVersion(entry.GetBanner())

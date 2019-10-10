@@ -33,7 +33,7 @@ type HeartbleedData struct {
 	Heartbleed bool // True if Heartbleed vuln detected
 }
 
-const certTimeFormat = "Feb 01, 2006 3:04:05 PM"
+const certTimeFormat = "Jan 2, 2006 3:04:05 PM"
 
 // CertMeta represents a scan of a Certificate inside other scan.
 type CertMeta struct {

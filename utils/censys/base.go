@@ -23,8 +23,8 @@ func (e *BaseEntry) GetTime(formatter string, defaultDate time.Time) time.Time {
 	return t
 }
 
-func (e *BaseEntry) GetCertificate() protocols.Certificate {
-	return nil // We don't parse certs from censys
+func (e *BaseEntry) GetCertificate() (protocols.Certificate, error) {
+	return nil, nil // We don't parse certs from censys
 }
 
 func (e *BaseEntry) GetError() error {
