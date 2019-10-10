@@ -11,6 +11,7 @@ import (
 	"github.com/clcert/osr/utils/protocols"
 	"github.com/sirupsen/logrus"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -54,27 +55,6 @@ func parseFile(file sources.Entry, args *tasks.Args, srcIP net.IP) error {
 		if entry.GetError() != nil {
 			continue
 		}
-		software, version := parser.GetSoftwareAndVersion(entry.GetBanner())
-		if err = saver.Save(&models.PortScan{
-			TaskID:         args.Task.ID,
-			SourceID:       args.Process.Source,
-			Date:           entry.GetTime(censys.DateFormat, options.DefaultDate),
-			ScanIP:         srcIP,
-			IP:             entry.GetIP(),
-			PortNumber:     port,
-			Protocol:       protocols.GetTransport(port),
-			ServiceActive:  parser.IsValid(entry.GetBanner()),
-			ServiceName:    software,
-			ServiceVersion: version,
-			ServiceExtra:   entry.GetBanner(),
-		}); err != nil {
-			args.Log.WithFields(logrus.Fields{
-				"file_path": file.Path(),
-				"ip":        entry.GetIP(),
-				"port":      port,
-			}).Error("Couldn't save entry: %s", err)
-			continue
-		}
 		cert := entry.GetCertificate()
 		if len(args.Savers) == 2 && cert != nil {
 			if err = saver.Save(&models.Certificate{
@@ -100,7 +80,30 @@ func parseFile(file sources.Entry, args *tasks.Args, srcIP net.IP) error {
 				}).Error("Couldn't save cert: %s", err)
 				continue
 			}
-
+		}
+		if strings.Contains(file.Name(), "certificate") {
+			continue // File contains only certificates
+		}
+		software, version := parser.GetSoftwareAndVersion(entry.GetBanner())
+		if err = saver.Save(&models.PortScan{
+			TaskID:         args.Task.ID,
+			SourceID:       args.Process.Source,
+			Date:           entry.GetTime(censys.DateFormat, options.DefaultDate),
+			ScanIP:         srcIP,
+			IP:             entry.GetIP(),
+			PortNumber:     port,
+			Protocol:       protocols.GetTransport(port),
+			ServiceActive:  parser.IsValid(entry.GetBanner()),
+			ServiceName:    software,
+			ServiceVersion: version,
+			ServiceExtra:   entry.GetBanner(),
+		}); err != nil {
+			args.Log.WithFields(logrus.Fields{
+				"file_path": file.Path(),
+				"ip":        entry.GetIP(),
+				"port":      port,
+			}).Error("Couldn't save entry: %s", err)
+			continue
 		}
 	}
 	return file.Close()
