@@ -2,6 +2,7 @@ package models
 
 import (
 	"crypto/x509"
+	"github.com/clcert/osr/utils/protocols"
 	"net"
 	"time"
 )
@@ -28,14 +29,6 @@ var CertificateModel = Model{
 	},
 }
 
-type TLSProto int
-
-const (
-	SSL30 TLSProto = iota
-	TLS10
-	TLS20
-	TLS30
-)
 
 // PortScan represents an open protocol port on a machine with an specific IP in a specific time.
 type Certificate struct {
@@ -49,11 +42,11 @@ type Certificate struct {
 	PortNumber         uint16       `sql:",pk,type:bigint"` // Protocol number scanned
 	Port               *Port
 	IsAutosigned       bool                    `sql:"default:false"` // True if it is autosigned
-	KeySize            bool                    // Key Size
+	KeySize            int                  // Key Size
 	ExpirationDate     time.Time               // Expiration Date
 	OrganizationName   string                  // Organization Name
 	OrganizationURL    string                  // Organization URL
 	Authority          string                  // Certificate Authority
 	SignatureAlgorithm x509.SignatureAlgorithm // Signature Algorithm
-	TLSProtocol        TLSProto                // TLS Protocol
+	TLSProtocol        protocols.TLSProto                // TLS Protocol
 }

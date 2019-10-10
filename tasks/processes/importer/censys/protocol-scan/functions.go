@@ -73,7 +73,7 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 			}).Error("Error unmarshaling line, skipping...")
 			continue
 		}
-		if entry.HasError() {
+		if entry.GetError() != nil {
 			continue
 		}
 		software, version := parser.GetSoftwareAndVersion(entry.GetBanner())

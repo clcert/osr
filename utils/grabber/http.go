@@ -9,7 +9,6 @@ type HTTPEntry struct {
 	Index       string              `json:"index"`       // Text representation of index webpage
 	TlsProtocol string              `json:"tlsProtocol"` // TLS protocol used on connection
 	CipherSuite string              `json:"cipherSuite"` // Cipher Suite used
-	CertMeta
 }
 
 func (e *HTTPEntry) GetBanner() string {

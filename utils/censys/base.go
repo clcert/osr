@@ -1,6 +1,7 @@
 package censys
 
 import (
+	"github.com/clcert/osr/utils/protocols"
 	"net"
 	"time"
 )
@@ -22,6 +23,10 @@ func (e *BaseEntry) GetTime(formatter string, defaultDate time.Time) time.Time {
 	return t
 }
 
-func (e *BaseEntry) HasError() bool {
-	return false // Censys doesnt report errors
+func (e *BaseEntry) GetCertificate() protocols.Certificate {
+	return nil // We don't parse certs from censys
+}
+
+func (e *BaseEntry) GetError() error {
+	return nil // Censys doesnt report errors
 }

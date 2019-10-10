@@ -1,6 +1,8 @@
 package grabber
 
 import (
+	"fmt"
+	"github.com/clcert/osr/utils/protocols"
 	"net"
 	"time"
 )
@@ -11,6 +13,7 @@ import (
 type BaseEntry struct {
 	IP    string `json:"ip"`    // Scanned IP
 	Error string `json:"error"` // Reported Error
+	*CertMeta
 }
 
 func (e *BaseEntry) GetIP() net.IP {
@@ -21,7 +24,13 @@ func (e *BaseEntry) GetTime(format string, defaultTime time.Time) time.Time {
 	return defaultTime // Grabber results don't have date :(
 }
 
-func (e *BaseEntry) HasError() bool {
-	return e.Error != ""
+func (e *BaseEntry) GetError() error {
+	if e.Error == "" {
+		return nil
+	}
+	return fmt.Errorf(e.Error)
 }
 
+func (e *BaseEntry) GetCertificate() protocols.Certificate {
+	return e.CertMeta
+}

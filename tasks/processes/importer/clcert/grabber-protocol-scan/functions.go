@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/clcert/osr/models"
-	"github.com/clcert/osr/savers"
 	"github.com/clcert/osr/sources"
 	"github.com/clcert/osr/tasks"
 	"github.com/clcert/osr/utils/censys"
@@ -17,10 +16,6 @@ import (
 
 func parseFile(file sources.Entry, args *tasks.Args, srcIP net.IP) error {
 	saver := args.Savers[0]
-	var certSaver savers.Saver
-	if len(args.Savers) == 2 {
-		certSaver = args.Savers[1]
-	}
 	date, port, protocol, err := parseMeta(file)
 	if err != nil {
 		args.Log.WithFields(logrus.Fields{
@@ -56,10 +51,9 @@ func parseFile(file sources.Entry, args *tasks.Args, srcIP net.IP) error {
 			}).Error("Error unmarshaling line, skipping...")
 			continue
 		}
-		if entry.HasError() {
+		if entry.GetError() != nil {
 			continue
 		}
-
 		software, version := parser.GetSoftwareAndVersion(entry.GetBanner())
 		if err = saver.Save(&models.PortScan{
 			TaskID:         args.Task.ID,
@@ -80,6 +74,33 @@ func parseFile(file sources.Entry, args *tasks.Args, srcIP net.IP) error {
 				"port":      port,
 			}).Error("Couldn't save entry: %s", err)
 			continue
+		}
+		cert := entry.GetCertificate()
+		if len(args.Savers) == 2 && cert != nil {
+			if err = saver.Save(&models.Certificate{
+				TaskID:             args.Task.ID,
+				SourceID:           args.Process.Source,
+				Date:               entry.GetTime(censys.DateFormat, options.DefaultDate),
+				ScanIP:             srcIP,
+				IP:                 entry.GetIP(),
+				PortNumber:         port,
+				IsAutosigned:       cert.IsAutosigned(),
+				KeySize:            cert.GetKeySize(),
+				ExpirationDate:     cert.GetExpirationDate(),
+				OrganizationName:   cert.GetOrganizationName(),
+				OrganizationURL:    cert.GetOrganizationURL(),
+				Authority:          cert.GetAuthority(),
+				SignatureAlgorithm: cert.GetSigAlgorithm(),
+				TLSProtocol:        cert.GetTLSProtocol(),
+			}); err != nil {
+				args.Log.WithFields(logrus.Fields{
+					"file_path": file.Path(),
+					"ip":        entry.GetIP(),
+					"port":      port,
+				}).Error("Couldn't save cert: %s", err)
+				continue
+			}
+
 		}
 	}
 	return file.Close()

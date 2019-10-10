@@ -17,14 +17,7 @@ var PortModel = Model{
 	AfterCreateFunction: createPortDefinitions,
 }
 
-// PortProtocol represents the transport protocol checked in a port scan.
-type PortProtocol int
 
-const (
-	UnknownProtocol PortProtocol = iota
-	TCP
-	UDP
-)
 // Protocol groups all the scanned ports and their meanings.
 type Port struct {
 	Number      uint16 `sql:",pk,type:bigint"`          // Protocol number

@@ -2,7 +2,7 @@ package grabber
 
 import (
 	"fmt"
-	"github.com/clcert/osr/models"
+	"github.com/clcert/osr/utils/protocols"
 	"strconv"
 	"strings"
 	"time"
@@ -35,14 +35,14 @@ func ParsePort(name string) (uint16, error) {
 	return uint16(port), nil
 }
 
-func ParseProtocol(name string) (protocol models.PortProtocol) {
-	protocol = models.TCP
+func ParseProtocol(name string) (protocol protocols.PortProtocol) {
+	protocol = protocols.TCP
 	protocolStr := Regex.Protocol.FindString(name)
 	if len(protocolStr) != 0 {
 		if protocolStr == "tcp" {
-			protocol = models.TCP
+			protocol = protocols.TCP
 		} else if protocolStr == "udp" {
-			protocol = models.UDP
+			protocol = protocols.UDP
 		}
 	}
 	return
