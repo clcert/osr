@@ -1,71 +1,25 @@
 package protocols
 
 import (
-	"fmt"
-	"github.com/clcert/osr/panics"
-	"regexp"
 	"strings"
 )
 
-
-var smtpRegexes = map[string]string {
-	"software": "[a-z\\.\\-\\_]*",
-	"version": "[0-9\\.\\_]*",
-	"ready": "ready.*", // Some SMTP Servers write "ready at DATE"
-}
-
-// SMTPParser parses version and software from SMTP banner.
-type SMTPParser struct {
-	Regexes map[string]*regexp.Regexp
-	inited bool
-}
-
-// If message starts with 220, almost certainly is a SFTP server
-func (p *SMTPParser) IsValid(banner string) bool {
-	return len(banner) >= 3 && banner[:3] == "220"
-}
-
-// init prepares the parser for its use.
-// It should be automatically executed as first method of getVersion and getSoftware.
-func (p *SMTPParser) init() {
-	if !p.inited {
-		for regexType, regex := range smtpRegexes {
-			regex, err := regexp.Compile(regex)
-			if err != nil {
-				panic(panics.Info{
-					Text:        fmt.Sprintf("%s Regex is not well defined: %s", regexType, regex),
-					Err:         err,
-				})
-			}
-			p.Regexes[regexType] = regex
-		}
-	}
-	p.inited = true
+var smtpRegexes = map[string]string{
+	"ready":     " ?ready.*", // Some SMTP Servers write "ready at DATE"
+	"randomhex": " ?\\([0-9a-f]*\\)",
+	"dow":       " ?(mon)|(tue)|(wed)|(thu)|(fri)|(sat)|(sun),? .*",
 }
 
 // It returns the rest of the banner if the string starts with 220
-func (p *SMTPParser) CheckSMTP(banner string) string {
+func prepareSMTP(p *BannerParser, banner string) string {
 	banner = strings.Split(banner, "\n")[0]
-	banner = p.Regexes["ready"].ReplaceAllString(banner, "")
-	if len(banner) > 3 && banner[:3] == "220" {
-		banner = strings.TrimSpace(banner[4:])
+	if len(banner) > len(p.StartString) && banner[:len(p.StartString)] == p.StartString {
+		banner = strings.TrimSpace(banner[len(p.StartString)+1:])
+		banner = p.ExtraRegexes["ready"].ReplaceAllString(banner, "")
+		banner = p.ExtraRegexes["randomhex"].ReplaceAllString(banner, "")
+		banner = p.ExtraRegexes["dow"].ReplaceAllString(banner, "")
 	} else {
 		return ""
 	}
-	domainSoftware := strings.SplitN(banner, " ", 2)
-	banner = domainSoftware[len(domainSoftware) - 1]
 	return banner
-}
-
-
-func (p *SMTPParser) GetVersion(banner string) string {
-	p.init()
-	banner = strings.ToLower(banner)
-	return strings.TrimSpace(p.Regexes["software"].FindString(p.CheckSMTP(banner)))
-}
-
-func (p *SMTPParser) GetSoftware(banner string) string {
-	p.init()
-	banner = strings.ToLower(banner)
-	return strings.TrimSpace(p.Regexes["software"].FindString(p.CheckSMTP(banner)))
 }

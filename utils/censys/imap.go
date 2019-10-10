@@ -2,7 +2,7 @@ package censys
 
 // Represents a dumped Censys SMTP Entry
 type IMAPEntry struct {
-	*BasicEntry
+	*BaseEntry
 	Banner string `json:"banner"`
 }
 

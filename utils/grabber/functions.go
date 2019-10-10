@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-func ParseDate(dir, format string) (date time.Time, err error) {
-	dirSlice := strings.Split(dir, "/")
+func ParseDate(format, path string) (date time.Time, err error) {
+	dirSlice := strings.Split(path, "/")
 	for i := len(dirSlice) - 1; i >= 0; i-- {
 		date, err = time.Parse(format, dirSlice[i])
 		if err == nil && !date.IsZero() {

@@ -5,19 +5,23 @@ import (
 	"time"
 )
 
-type BasicEntry struct {
+type BaseEntry struct {
 	Timestamp string `json:"timestamp"`
 	IP        string `json:"ip"`
 }
 
-func (e *BasicEntry) GetIP() net.IP {
+func (e *BaseEntry) GetIP() net.IP {
 	return net.ParseIP(e.IP)
 }
 
-func (e *BasicEntry) GetTime(formatter string, defaultDate time.Time) time.Time {
+func (e *BaseEntry) GetTime(formatter string, defaultDate time.Time) time.Time {
 	t, err := time.Parse(e.Timestamp, formatter)
 	if err != nil {
 		t = defaultDate
 	}
 	return t
+}
+
+func (e *BaseEntry) HasError() bool {
+	return false // Censys doesnt report errors
 }

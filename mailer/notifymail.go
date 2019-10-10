@@ -51,7 +51,7 @@ func (notification *NotifyMail) Send() error {
 		for _, attachable := range notification.Attachments {
 			attachments := attachable.GetAttachments()
 			for _, attachment := range attachments {
-				// Check if file exists and its length is greater than 0
+				// prepareFTP if file exists and its length is greater than 0
 				fStat, err := os.Stat(attachment)
 				if err != nil {
 					continue

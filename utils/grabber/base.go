@@ -21,3 +21,7 @@ func (e *BaseEntry) GetTime(format string, defaultTime time.Time) time.Time {
 	return defaultTime // Grabber results don't have date :(
 }
 
+func (e *BaseEntry) HasError() bool {
+	return e.Error != ""
+}
+

@@ -42,7 +42,7 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 }
 
 func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP net.IP) error {
-	date, err := grabber.ParseDate(file.Dir(), DateFormat)
+	date, err := grabber.ParseDate(DateFormat, file.Dir())
 	if err != nil {
 		date = time.Now()
 		args.Log.WithFields(logrus.Fields{

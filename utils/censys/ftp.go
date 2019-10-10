@@ -2,7 +2,7 @@ package censys
 
 // Represents a Dumped Censys FTP Entry
 type FTPEntry struct {
-	*BasicEntry
+	*BaseEntry
 	Banner string `json:"banner"`
 }
 

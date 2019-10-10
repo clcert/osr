@@ -1,13 +1,8 @@
 package censys
 
-import (
-	"github.com/clcert/osr/utils/protocols"
-)
-
 // Represents a dumped Censys SMTP Entry
 type SMTPEntry struct {
-	Parser protocols.SMTPParser
-	*BasicEntry
+	*BaseEntry
 	Banner string `json:"banner"`
 	Ehlo   string `json:"ehlo"`
 }

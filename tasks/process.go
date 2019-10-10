@@ -33,7 +33,7 @@ type Process struct {
 	Command     string              // The name you write when you want to execute the command
 	Description string              // A description for the importer routine
 	URL         string              // If exists, a URL related with the source of the data
-	Source      models.DataSourceID // Provider ID. Check Providers model to get it or register it.
+	Source      models.DataSourceID // Provider ID. prepareFTP Providers model to get it or register it.
 	Execute     func(*Args) error   // An action to be executed when this command is called.
 	NumSources  int                 // Number of allowed sources on this task. If negative, it's unlimited.
 	NumSavers   int                 // Number of allowed savers on this task. If negative, it's unlimited.

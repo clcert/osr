@@ -43,7 +43,7 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 		args.Log.WithFields(logrus.Fields{
 			"file_name": file.Name(),
 			"current_date": date,
-		}).Error("Couldn't determine date, port and protocol. Skipping file...")
+		}).Error("%s. Skipping file...", err)
 		return err
 	}
 	reader, err := file.Open()
@@ -73,6 +73,10 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 			}).Error("Error unmarshaling line, skipping...")
 			continue
 		}
+		if entry.HasError() {
+			continue
+		}
+		software, version := parser.GetSoftwareAndVersion(entry.GetBanner())
 		if err = saver.Save(&models.PortScan{
 			TaskID:         args.Task.ID,
 			SourceID:       args.Process.Source,
@@ -82,8 +86,8 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 			PortNumber:     port,
 			Protocol:       protocols.GetTransport(port),
 			ServiceActive:  parser.IsValid(entry.GetBanner()),
-			ServiceName:    parser.GetSoftware(entry.GetBanner()),
-			ServiceVersion: parser.GetVersion(entry.GetBanner()),
+			ServiceName:    software,
+			ServiceVersion: version,
 			ServiceExtra:   entry.GetBanner(),
 		}); err != nil {
 			args.Log.WithFields(logrus.Fields{
@@ -100,7 +104,7 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 func parseMeta(source sources.Entry) (date time.Time, port uint16, protocol string, err error) {
 	slice1 := strings.Split(source.Name(), ".")
 	slice2 := strings.Split(slice1[0], "_")
-	date, err = time.Parse(slice2[0],"2006-01-02")
+	date, err = time.Parse("20060102", slice2[0])
 	if err != nil {
 		return
 	}

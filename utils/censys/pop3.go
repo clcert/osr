@@ -2,7 +2,7 @@ package censys
 
 // Represents a dumped Censys POP3 Entry
 type POP3Entry struct {
-	*BasicEntry
+	*BaseEntry
 	Banner string `json:"banner"`
 }
 

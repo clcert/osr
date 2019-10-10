@@ -1,16 +1,11 @@
 package censys
 
-import (
-	"github.com/clcert/osr/utils/protocols"
-)
-
 // Represents a Dumped Censys SSH Entry
 type SSHEntry struct {
-	Parser protocols.SSHParser
-	*BasicEntry
-	Banner string `json:"banner"`
+	*BaseEntry
+	Raw string `json:"raw"`
 }
 
 func (e *SSHEntry) GetBanner() string {
-	return e.Banner
+	return e.Raw
 }

@@ -2,7 +2,7 @@ package censys
 
 // Represents a dumped Censys HTTP Entry
 type HTTPEntry struct {
-	*BasicEntry
+	*BaseEntry
 	ContentLength string `json:"content_length"`
 	ContentType   string `json:"content_Type"`
 	Server        string `json:"server"`

@@ -18,7 +18,7 @@ func parseSource(source sources.Source, saver savers.Saver, args *tasks.Args) {
 	if err != nil {
 		id = "unknown"
 	}
-	// Check the first one, if it's CSV, we scan all as CSV.
+	// prepareFTP the first one, if it's CSV, we scan all as CSV.
 	// If it's ZIP, we assume that it is only one.
 	entry := source.Next()
 	if entry == nil {

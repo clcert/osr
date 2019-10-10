@@ -54,7 +54,7 @@ func init() {
 		},
 		&tasks.Process{
 			Name:        "CLCERT Grabber Protocol Scan",
-			Command:     "import/clcert-grabber-protocol-scan",
+			Command:     "import/clcert-protocol-scan",
 			Description: "Imports protocol scans locally made.",
 			URL:         "",
 			Source:      models.CLCERT,

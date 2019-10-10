@@ -202,7 +202,7 @@ func (saver *PostgresSaver) insertToDatabase(objList []interface{}, config *Inse
 			saver.insertMutex.Lock()
 			defer saver.insertMutex.Unlock()
 		}
-		result, err := query.Insert()
+ 		result, err := query.Insert()
 		if err != nil {
 			saver.log.Errorf("Couldn't insert entries to database: %v", err)
 			saver.errors = append(saver.errors, err)

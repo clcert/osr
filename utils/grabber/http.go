@@ -1,5 +1,7 @@
 package grabber
 
+import "strings"
+
 // HTTPEntry represents an HTTP Header Scan
 type HTTPEntry struct {
 	BaseEntry
@@ -11,8 +13,12 @@ type HTTPEntry struct {
 }
 
 func (e *HTTPEntry) GetBanner() string {
-	if s, ok := e.Header["Server"]; ok  && len(s) >=1 {
-		return s[0]
+	// Need to do this: server header is not case sensitive
+	for k, v := range e.Header {
+		if strings.ToLower(k) == "server" {
+			return v[0]
+		}
 	}
+
 	return ""
 }

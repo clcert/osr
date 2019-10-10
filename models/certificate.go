@@ -47,7 +47,6 @@ type Certificate struct {
 	ScanIP             net.IP       `sql:",pk"`             // IP address used to scan the server
 	IP                 net.IP       `sql:",pk"`             // Address
 	PortNumber         uint16       `sql:",pk,type:bigint"` // Protocol number scanned
-	Protocol           PortProtocol `sql:",pk,type:smallint,notnull"`
 	Port               *Port
 	IsAutosigned       bool                    `sql:"default:false"` // True if it is autosigned
 	KeySize            bool                    // Key Size
