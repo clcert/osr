@@ -4,10 +4,6 @@ import (
 	"net"
 )
 
-func init() {
-	DefaultModels.Append(IpAsnCountryModel)
-}
-
 // IpAsnCountryModel contains the metainformation related to the respective model.
 var IpAsnCountryModel = Model{
 	Name:        "Address ASN Country",

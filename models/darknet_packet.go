@@ -6,10 +6,6 @@ import (
 	"time"
 )
 
-func init() {
-	DefaultModels.Append(DarknetPacketModel)
-}
-
 // DarknetPacketModel contains the metainformation related to the respective model.
 var DarknetPacketModel = Model{
 	Name:        "Darknet Packet",

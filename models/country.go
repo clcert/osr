@@ -1,9 +1,5 @@
 package models
 
-func init() {
-	DefaultModels.Append(CountryModel)
-}
-
 // CountryModel contains the metainformation related to the respective model.
 var CountryModel = Model{
 	Name:        "Country",

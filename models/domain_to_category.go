@@ -3,7 +3,6 @@ package models
 import "github.com/go-pg/pg/orm"
 
 func init() {
-	DefaultModels.Append(DomainToCategoryModel)
 	orm.RegisterTable((*DomainToCategory)(nil))
 }
 

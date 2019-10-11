@@ -4,10 +4,6 @@ import (
 	"net"
 )
 
-func init() {
-	DefaultModels.Append(SubnetCountryModel)
-}
-
 var SubnetCountryModel = Model{
 	Name:        "Subnet Country",
 	Description: "Subnet Country Model",

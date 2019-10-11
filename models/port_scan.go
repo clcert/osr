@@ -6,10 +6,6 @@ import (
 	"time"
 )
 
-func init() {
-	DefaultModels.Append(PortScanModel)
-}
-
 // PortScanModel contains the metainformation related to the respective model.
 var PortScanModel = Model{
 	Name:        "Port Scan",

@@ -4,10 +4,6 @@ import (
 	"github.com/go-pg/pg"
 )
 
-func init() {
-	DefaultModels.Append(PortModel)
-}
-
 
 // PortModel contains the metainformation related to the respective model.
 var PortModel = Model{

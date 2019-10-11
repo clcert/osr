@@ -6,10 +6,6 @@ import (
 	"time"
 )
 
-func init() {
-	DefaultModels.Append(BlacklistedSubnetModel)
-}
-
 // BlacklistedSubnetModel contains the metainformation related to the respective model.
 var BlacklistedSubnetModel = Model{
 	Name:                "Blacklisted Sub Networks",
@@ -24,9 +20,11 @@ var BlacklistedSubnetModel = Model{
 // BlacklistedSubnet represents a subnet tthat we must not scan.
 type BlacklistedSubnet struct {
 	// Task structure
-	DateAdded   time.Time `sql:",notnull,default:now()"` // Date of the blacklisted element submission
-	Subnet      *net.IPNet `sql:",pk"`                // IP range blacklisted
-	Reason      string     `sql:",type:varchar(255)"` // Reason for blacklisting
+	DateAdded time.Time  `sql:",notnull,default:now()"` // Date of the blacklisted element submission
+	Subnet    *net.IPNet `sql:",pk"`                    // IP range blacklisted
+	Reason    string     `sql:",type:varchar(255)"`     // Reason for blacklisting
+	ContactID string     `sql:",type:varchar(32)"`   // Contact ID
+	Contact   *Contact
 }
 
 // DefaultBlacklistSubnets inserts the reserved ranges of subnets to the database when it is created.
@@ -61,9 +59,9 @@ func defaultBlacklistSubnets(db *pg.DB) error {
 			return err
 		}
 		subnets = append(subnets, &BlacklistedSubnet{
-			DateAdded:   subnetDate,
-			Subnet:      subnetCIDR,
-			Reason:      subnet[2],
+			DateAdded: subnetDate,
+			Subnet:    subnetCIDR,
+			Reason:    subnet[2],
 		})
 	}
 	_, err := db.Model(&subnets).OnConflict("DO NOTHING").Insert()

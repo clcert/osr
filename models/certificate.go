@@ -7,9 +7,6 @@ import (
 	"time"
 )
 
-func init() {
-	DefaultModels.Append(CertificateModel)
-}
 
 // PortScanModel contains the metainformation related to the respective model.
 var CertificateModel = Model{

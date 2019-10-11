@@ -14,12 +14,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-// DefaultModels defines the default model list.
-var DefaultModels = ModelsList{
-	Name:   "default",
-	Models: make([]Model, 0),
-}
-
 // ModelConfig defines a configuration list in
 type ModelConfig struct {
 	BeforeCreate query.Queries // Statements to execute before model creation

@@ -2,10 +2,6 @@ package models
 
 import "time"
 
-func init() {
-	DefaultModels.Append(ContactModel)
-}
-
 var ContactModel = Model{
 	Name:                "Contact",
 	Description:         "Represents the contact information responsible of some internet resource",

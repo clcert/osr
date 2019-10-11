@@ -2,10 +2,6 @@ package models
 
 import "github.com/go-pg/pg"
 
-func init() {
-	DefaultModels.Append(DomainCategoryModel)
-}
-
 // DomainCategoryModel contains the metainformation related to the respective model.
 var DomainCategoryModel = Model{
 	Name:                "Domain Category",
@@ -17,8 +13,8 @@ var DomainCategoryModel = Model{
 // This structure defines a category for a internet domain.
 type DomainCategory struct {
 	Slug        string `sql:",pk,type:varchar(255)"` // Numerical name of the category
-	Name        string                               // name of the category
-	Description string                               // Short of the category
+	Name        string `sql:",type:varchar(255)"` // name of the category
+	Description string // Short of the category
 }
 
 // createDomainCategories initializes the domain categories available on the system

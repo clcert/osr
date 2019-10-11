@@ -4,9 +4,6 @@ import (
 	"net"
 )
 
-func init() {
-	DefaultModels.Append(SubnetASNModel)
-}
 
 var SubnetASNModel = Model{
 	Name:        "Subnet ASN",

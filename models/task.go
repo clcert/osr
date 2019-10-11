@@ -5,10 +5,6 @@ import (
 	"time"
 )
 
-func init() {
-	DefaultModels.Append(TaskModel)
-}
-
 var TaskModel = Model{
 	Name:        "Task",
 	Description: "Task Model",
