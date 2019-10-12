@@ -85,6 +85,9 @@ func NewPostgresUser(db *pg.DB, username string, tablePermissions, seqPermission
 // GetPostgresReader returns a pg.DB struct with a "connection" to a Postgres database with read permissions.
 func GetPostgresReader() (*pg.DB, error) {
 	conf, err := GetDBConfig("postgres")
+	if err != nil {
+		return nil, err
+	}
 	return pg.Connect(&pg.Options{
 		Addr:     fmt.Sprintf("%s:%d", conf.Server, conf.Port),
 		User:     conf.Reader.Username,
