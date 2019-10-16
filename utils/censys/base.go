@@ -1,6 +1,7 @@
 package censys
 
 import (
+	"fmt"
 	"github.com/clcert/osr/utils/protocols"
 	"net"
 	"time"
@@ -28,5 +29,10 @@ func (e *BaseEntry) GetCertificate() (protocols.Certificate, error) {
 }
 
 func (e *BaseEntry) GetError() error {
-	return nil // Censys doesnt report errors
+	if e.Timestamp == "" {
+		return fmt.Errorf("empty date")
+	} else if e.GetIP() == nil {
+		return fmt.Errorf("cannot parse IP")
+	}
+	return nil
 }

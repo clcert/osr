@@ -57,6 +57,10 @@ func saveNewDomains(entry sources.Entry, saver savers.Saver, args *tasks.Args) e
 		}).
 		Info("Scanning file...")
 	var firstRowRead bool
+	loc, err := time.LoadLocation("America/Santiago")
+	if err != nil {
+		return err
+	}
 	for scanner.Scan() {
 		if !firstRowRead {
 			firstRowRead = true
@@ -80,7 +84,7 @@ func saveNewDomains(entry sources.Entry, saver savers.Saver, args *tasks.Args) e
 			continue
 		}
 		splitDate := strings.Split(splitLine[1], ".")[0]
-		date, err := time.Parse(NicTimeLayout, splitDate)
+		date, err := time.ParseInLocation(NicTimeLayout, splitDate, loc)
 		if err != nil {
 			args.Log.WithFields(logrus.Fields{
 				"date": splitDate,

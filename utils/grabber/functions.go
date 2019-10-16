@@ -8,10 +8,16 @@ import (
 	"time"
 )
 
+var loc *time.Location
+
+func init() {
+	loc, _ = time.LoadLocation("America/Santiago")
+}
+
 func ParseDate(format, path string) (date time.Time, err error) {
 	dirSlice := strings.Split(path, "/")
 	for i := len(dirSlice) - 1; i >= 0; i-- {
-		date, err = time.Parse(format, dirSlice[i])
+		date, err = time.ParseInLocation(format, dirSlice[i], loc)
 		if err == nil && !date.IsZero() {
 			break
 		}

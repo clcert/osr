@@ -1,43 +1,43 @@
 package protocols
-
-var Parsers map[string]*BannerParser
+var Parsers ParserMap
 
 func init() {
-	Parsers = map[string]*BannerParser{
-		"http": {
-			prepare:    prepareHTTP,
+	Parsers.Add(
+		&Parser{
+			Name:       "http",
+			regexes:    httpRegexes,
 			SplitParts: 2,
 		},
-		"ssh": {
-			prepare:     prepareSSH,
-			StartString: "ssh",
-			SplitParts:  2, // ssh <something> rest... (rest could contain a version)
+		&Parser{
+			Name:       "ssh",
+			Ok:         "^ssh",
+			SplitParts: 2,
 		},
-		"ftp": {
-			regexes:     ftpRegexes,
-			prepare:     prepareFTP,
-			StartString: "220",
-			SplitParts:  2, // 220 <something> rest... (rest could contain a version)
+		&Parser{
+			Name:       "imap",
+			Ok:         "^\\* ((ok)|(bye)|(no))",
+			regexes:    imapRegexes,
+			SplitParts: 3,
 		},
-		"pop3": {
-			regexes:     pop3Regexes,
-			prepare:     preparePOP3,
-			StartString: "+ok",
-			SplitParts:  2, // +ok <something> rest... (rest could contain a version)
+		&Parser{
+			Name:       "ftp",
+			Ok:         "^\\d{3}",
+			regexes:    ftpRegexes,
+			SplitParts: 2,
 		},
-		"imap": {
-			regexes:     imapRegexes,
-			prepare:     prepareIMAP,
-			StartString: "* ok",
-			SplitParts:  3, // * ok <something> rest... (rest could contain a version)
+		&Parser{
+			Name:       "pop3",
+			Ok:         "^((\\+ok)|(-err))",
+			regexes:    pop3Regexes,
+			SplitParts: 2,
 		},
-		"smtp": {
-			regexes:     smtpRegexes,
-			prepare:     prepareSMTP,
-			StartString: "220",
-			SplitParts:  2, // 220 <something> rest... (rest could contain a version)
+		&Parser{
+			Name:       "smtp",
+			Ok:         "^\\d{3}",
+			regexes:    smtpRegexes,
+			SplitParts: 2,
 		},
-	}
+	)
 	// parser from https is equal to parser from http
 	Parsers["https"] = Parsers["http"]
 }

@@ -9,34 +9,66 @@ import (
 
 const trimmable = " .,;\n\t\r-_="
 
-// BannerParser defines a struct capable to parse version and software from a Banner.
-type BannerParser struct {
-	regexes       map[string]string
+// FromTo Defines a pair of strings.
+// The first string represents a regexp to find and the second one the replacement.
+type FromTo struct {
+	From, To string
+}
+
+// ParserMap is a map of parsers
+type ParserMap map[string]*Parser
+
+func (m ParserMap) Add(parsers ...*Parser) {
+	for _, parser := range parsers {
+		m[parser.Name] = parser
+	}
+}
+
+// Parser defines a struct capable to parse version and software from a Banner.
+type Parser struct {
+	Name          string
+	regexes       map[string]FromTo
+	OkRegex       *regexp.Regexp
 	SoftwareRegex *regexp.Regexp
 	VersionRegex  *regexp.Regexp
 	ExtraRegexes  map[string]*regexp.Regexp
-	prepare       func(*BannerParser, string) string
-	StartString   string
+	Ok            string
 	SplitParts    int
 	inited        bool
 }
 
 // init prepares the parser for its use.
 // It should be automatically executed as first method of getVersion and getSoftware.
-func (p *BannerParser) init() {
+func (p *Parser) init() {
 	if !p.inited {
+		okRegex, err := regexp.Compile(p.Ok)
+		if err != nil {
+			panic(panics.Info{
+				Text: fmt.Sprintf("Protocol OK Regex is not well defined: %s", p.Ok),
+				Err:  err,
+			})
+		}
 		softRegex, err := regexp.Compile("[a-z0-9.\\-_ ]*")
 		if err != nil {
+			panic(panics.Info{
+				Text: fmt.Sprintf("Protocol Software Regex is not well defined."),
+				Err:  err,
+			})
 		}
 		verRegex, err := regexp.Compile("v?([0-9]+)([\\-+a-z]?\\.[\\-+a-z]?[0-9]+)+")
 		if err != nil {
+			panic(panics.Info{
+				Text: fmt.Sprintf("Protocol Version Regex is not well defined."),
+				Err:  err,
+			})
 		}
+		p.OkRegex = okRegex
 		p.SoftwareRegex = softRegex
 		p.VersionRegex = verRegex
 		p.ExtraRegexes = make(map[string]*regexp.Regexp)
 		if p.regexes != nil {
 			for regexType, regex := range p.regexes {
-				regex, err := regexp.Compile(regex)
+				regex, err := regexp.Compile(regex.From)
 				if err != nil {
 					panic(panics.Info{
 						Text: fmt.Sprintf("%s Regex is not well defined: %s", regexType, regex),
@@ -51,25 +83,26 @@ func (p *BannerParser) init() {
 }
 
 // Returns true if the banner is valid
-func (p *BannerParser) IsValid(banner string) bool {
+func (p *Parser) IsValid(banner string) bool {
 	p.init()
 	banner = strings.ToLower(strings.SplitN(banner, "\n", 2)[0])
-	return len(banner) >= len(p.StartString) && strings.HasPrefix(banner, p.StartString)
+	return p.OkRegex.MatchString(banner)
 }
 
-func (p *BannerParser) Prepare(banner string) string {
-	return p.prepare(p, banner)
+func (p *Parser) Prepare(banner string) string {
+	banner = strings.Split(banner, "\n")[0]
+	for regexKey, regex := range p.ExtraRegexes {
+		banner = regex.ReplaceAllString(banner, p.regexes[regexKey].To)
+	}
+	return banner
 }
 
 // Returns the software name and version of the service obtained from the banner.
 // If it can find a value, it returns an empty string.
-func (p *BannerParser) GetSoftwareAndVersion(banner string) (software string, version string) {
+func (p *Parser) GetSoftwareAndVersion(banner string) (software string, version string) {
 	p.init()
 	banner = strings.ToLower(banner)
-	if p.prepare != nil {
-		banner = p.Prepare(banner)
-	}
-
+	banner = p.Prepare(banner)
 	// parsing software
 	software = strings.Trim(p.SoftwareRegex.FindString(banner), trimmable)
 

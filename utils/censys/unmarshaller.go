@@ -4,13 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/clcert/osr/utils/protocols"
-	"time"
 )
 
 type Unmarshaler func(line string) (protocols.Entry, error)
 
 type ParserOptions struct {
-	DefaultDate time.Time
 	Port        uint16
 	Protocol    string
 }

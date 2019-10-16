@@ -38,11 +38,10 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 }
 
 func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP net.IP) error {
-	date, port, protocol, err := parseMeta(file)
+	port, protocol, err := parseMeta(file)
 	if err != nil {
 		args.Log.WithFields(logrus.Fields{
 			"file_name": file.Name(),
-			"current_date": date,
 		}).Error("%s. Skipping file...", err)
 		return err
 	}
@@ -52,13 +51,11 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 	}
 	args.Log.WithFields(logrus.Fields{
 		"file_path": file.Path(),
-		"date":      date,
 	}).Info("File opened")
 	scanner := bufio.NewScanner(reader)
 	options := &censys.ParserOptions{
-		DefaultDate: date,
-		Port:        port,
-		Protocol:    protocol,
+		Port:     port,
+		Protocol: protocol,
 	}
 	parser, ok := protocols.Parsers[protocol]
 	if !ok {
@@ -74,26 +71,34 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 			continue
 		}
 		if entry.GetError() != nil {
-			continue
-		}
-		software, version := parser.GetSoftwareAndVersion(entry.GetBanner())
-		if err = saver.Save(&models.PortScan{
-			TaskID:         args.Task.ID,
-			SourceID:       args.Process.Source,
-			Date:           entry.GetTime(censys.DateFormat, options.DefaultDate),
-			ScanIP:         srcIP,
-			IP:             entry.GetIP(),
-			PortNumber:     port,
-			Protocol:       protocols.GetTransport(port),
-			ServiceActive:  parser.IsValid(entry.GetBanner()),
-			ServiceName:    software,
-			ServiceVersion: version,
-			ServiceExtra:   entry.GetBanner(),
-		}); err != nil {
 			args.Log.WithFields(logrus.Fields{
 				"file_path": file.Path(),
-				"ip": entry.GetIP(),
-				"port": port,
+				"line":      scanner.Text(),
+				"error":     err,
+			}).Error("This line is not well formed, skipping...")
+			continue
+		}
+		portScan := &models.PortScan{
+			TaskID:     args.Task.ID,
+			SourceID:   args.Process.Source,
+			Date:       entry.GetTime(censys.DateFormat, time.Time{}),
+			ScanIP:     srcIP,
+			IP:         entry.GetIP(),
+			PortNumber: port,
+			Protocol:   protocols.GetTransport(port),
+		}
+		if parser.IsValid(entry.GetBanner()) {
+			software, version := parser.GetSoftwareAndVersion(entry.GetBanner())
+			portScan.ServiceActive = true
+			portScan.ServiceName = software
+			portScan.ServiceVersion = version
+			portScan.ServiceExtra = entry.GetBanner()
+		}
+		if err = saver.Save(portScan); err != nil {
+			args.Log.WithFields(logrus.Fields{
+				"file_path": file.Path(),
+				"ip":        entry.GetIP(),
+				"port":      port,
 			}).Error("Couldn't save entry: %s", err)
 			continue
 		}
@@ -101,13 +106,9 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 	return file.Close()
 }
 
-func parseMeta(source sources.Entry) (date time.Time, port uint16, protocol string, err error) {
+func parseMeta(source sources.Entry) (port uint16, protocol string, err error) {
 	slice1 := strings.Split(source.Name(), ".")
 	slice2 := strings.Split(slice1[0], "_")
-	date, err = time.Parse("20060102", slice2[0])
-	if err != nil {
-		return
-	}
 	if len(slice2) >= 2 {
 		var port64 int64
 		port64, err = strconv.ParseInt(slice2[1], 10, 32)
@@ -121,4 +122,3 @@ func parseMeta(source sources.Entry) (date time.Time, port uint16, protocol stri
 	}
 	return
 }
-

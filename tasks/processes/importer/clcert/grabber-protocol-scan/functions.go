@@ -60,7 +60,7 @@ func parseFile(file sources.Entry, args *tasks.Args, srcIP net.IP) error {
 			if err = saver.Save(&models.Certificate{
 				TaskID:             args.Task.ID,
 				SourceID:           args.Process.Source,
-				Date:               entry.GetTime(censys.DateFormat, options.DefaultDate),
+				Date:               entry.GetTime(censys.DateFormat, options.DefaultDate).Local(),
 				ScanIP:             srcIP,
 				IP:                 entry.GetIP(),
 				PortNumber:         port,
@@ -114,6 +114,7 @@ func parseMeta(file sources.Entry) (date time.Time, port uint16, protocol string
 	if err != nil {
 		return
 	}
+	date = 	date.In(time.Local)
 	port, err = grabber.ParsePort(file.Name())
 	if err != nil {
 		return
