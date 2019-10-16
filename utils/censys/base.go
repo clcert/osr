@@ -17,7 +17,7 @@ func (e *BaseEntry) GetIP() net.IP {
 }
 
 func (e *BaseEntry) GetTime(formatter string, defaultDate time.Time) time.Time {
-	t, err := time.Parse(e.Timestamp, formatter)
+	t, err := time.Parse(formatter, e.Timestamp)
 	if err != nil {
 		t = defaultDate
 	}

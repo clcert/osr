@@ -78,10 +78,11 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 			}).Error("This line is not well formed, skipping...")
 			continue
 		}
+		scanDate := entry.GetTime(censys.DateFormat, time.Time{})
 		portScan := &models.PortScan{
 			TaskID:     args.Task.ID,
 			SourceID:   args.Process.Source,
-			Date:       entry.GetTime(censys.DateFormat, time.Time{}),
+			Date:       scanDate,
 			ScanIP:     srcIP,
 			IP:         entry.GetIP(),
 			PortNumber: port,

@@ -1,5 +1,6 @@
 package protocols
-var Parsers ParserMap
+
+var Parsers  = make(ParserMap)
 
 func init() {
 	Parsers.Add(
