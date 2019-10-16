@@ -52,7 +52,12 @@ func parseFile(file sources.Entry, args *tasks.Args, srcIP net.IP) error {
 			}).Error("Error unmarshaling line, skipping...")
 			continue
 		}
-		if entry.GetError() != nil {
+		if err := entry.GetError(); err != nil {
+			args.Log.WithFields(logrus.Fields{
+				"file_path": file.Path(),
+				"line":      scanner.Text(),
+				"error":     err,
+			}).Error("Error in line data, skipping...")
 			continue
 		}
 		cert, err := entry.GetCertificate()
@@ -84,20 +89,23 @@ func parseFile(file sources.Entry, args *tasks.Args, srcIP net.IP) error {
 		if strings.Contains(file.Path(), "certificate") {
 			continue // File contains only certificates
 		}
-		software, version := parser.GetSoftwareAndVersion(entry.GetBanner())
-		if err = saver.Save(&models.PortScan{
-			TaskID:         args.Task.ID,
-			SourceID:       args.Process.Source,
-			Date:           entry.GetTime(censys.DateFormat, options.DefaultDate),
-			ScanIP:         srcIP,
-			IP:             entry.GetIP(),
-			PortNumber:     port,
-			Protocol:       protocols.GetTransport(port),
-			ServiceActive:  parser.IsValid(entry.GetBanner()),
-			ServiceName:    software,
-			ServiceVersion: version,
-			ServiceExtra:   entry.GetBanner(),
-		}); err != nil {
+		portScan := &models.PortScan{
+			TaskID:     args.Task.ID,
+			SourceID:   args.Process.Source,
+			Date:       entry.GetTime(censys.DateFormat, options.DefaultDate),
+			ScanIP:     srcIP,
+			IP:         entry.GetIP(),
+			PortNumber: port,
+			Protocol:   protocols.GetTransport(port),
+		}
+		if parser.IsValid(entry.GetBanner()) {
+			software, version := parser.GetSoftwareAndVersion(entry.GetBanner())
+			portScan.ServiceActive = true
+			portScan.ServiceName = software
+			portScan.ServiceVersion = version
+			portScan.ServiceExtra = entry.GetBanner()
+		}
+		if err = saver.Save(portScan); err != nil {
 			args.Log.WithFields(logrus.Fields{
 				"file_path": file.Path(),
 				"ip":        entry.GetIP(),
@@ -114,7 +122,7 @@ func parseMeta(file sources.Entry) (date time.Time, port uint16, protocol string
 	if err != nil {
 		return
 	}
-	date = 	date.In(time.Local)
+	date = date.In(time.Local)
 	port, err = grabber.ParsePort(file.Name())
 	if err != nil {
 		return
