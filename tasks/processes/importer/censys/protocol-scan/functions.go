@@ -71,11 +71,6 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 			continue
 		}
 		if err := entry.GetError(); err != nil {
-			args.Log.WithFields(logrus.Fields{
-				"file_path": file.Path(),
-				"line":      scanner.Text(),
-				"error":     err,
-			}).Error("This line is not well formed, skipping...")
 			continue
 		}
 		scanDate := entry.GetTime(censys.DateFormat, time.Time{})
