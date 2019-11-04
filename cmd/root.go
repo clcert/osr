@@ -9,8 +9,6 @@ import (
 	"os"
 )
 
-const VERSION = "3.0.0"
-
 func init() {
 	RootCmd.AddCommand(ModelsCmd)
 	RootCmd.AddCommand(RawQueryCmd)
