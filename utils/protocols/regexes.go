@@ -4,8 +4,9 @@ var ftpRegexes = map[string]FromTo{
 	"brackets":   {" ?\\[.*\\]", ""},
 	"welcome":    {" ?welcome to", ""},
 	"none":       {" ?\\(none\\)", ""}, // Weird thing from GNU FTP server
-	"ftpService": {" ?ftp serv(er)|(ice).*", ""},
+	"ftpService": {" ?ftp serv((er)|(ice)).*", ""},
 	"dow":        {" ?(mon)|(tue)|(wed)|(thu)|(fri)|(sat)|(sun),? .*", ""},
+	"version":    {"version", ""},
 }
 
 var httpRegexes = map[string]FromTo{
@@ -14,7 +15,7 @@ var httpRegexes = map[string]FromTo{
 
 var imapRegexes = map[string]FromTo{
 	"ready":    {"( ?is )?ready.*", ""}, // Some IMAP Servers write "ready at DATE"
-	"server":   {" ?serv(er|ice)", ""},
+	"server":   {" ?serv((er)|(ice))", ""},
 	"brackets": {" ?\\[.*\\]", ""},
 	"lessmore": {" ?<.*>", ""},
 	"dow":      {" ?(mon)|(tue)|(wed)|(thu)|(fri)|(sat)|(sun),? .*", ""},

@@ -88,21 +88,17 @@ func (p *Parser) IsValid(banner string) bool {
 	banner = strings.ToLower(strings.SplitN(banner, "\n", 2)[0])
 	return p.OkRegex.MatchString(banner)
 }
-
-func (p *Parser) Prepare(banner string) string {
-	banner = strings.Split(banner, "\n")[0]
-	for regexKey, regex := range p.ExtraRegexes {
-		banner = regex.ReplaceAllString(banner, p.regexes[regexKey].To)
-	}
-	return banner
-}
-
 // Returns the software name and version of the service obtained from the banner.
 // If it can find a value, it returns an empty string.
 func (p *Parser) GetSoftwareAndVersion(banner string) (software string, version string) {
 	p.init()
 	banner = strings.ToLower(banner)
-	banner = p.Prepare(banner)
+	// Removing OK string
+	banner = strings.Split(banner, "\n")[0]
+	banner = p.OkRegex.ReplaceAllLiteralString(banner, "")
+	for regexKey, regex := range p.ExtraRegexes {
+		banner = regex.ReplaceAllString(banner, p.regexes[regexKey].To)
+	}
 	// parsing software
 	software = strings.Trim(p.SoftwareRegex.FindString(banner), trimmable)
 
