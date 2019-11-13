@@ -100,7 +100,6 @@ func (p *Parser) GetSoftwareAndVersion(banner string) (software string, version 
 	// changing dashes and lower dashes for spaces
 	banner = strings.ReplaceAll(banner, "-", " ")
 	banner = strings.ReplaceAll(banner, "_", " ")
-
 	for regexKey, regex := range p.ExtraRegexes {
 		banner = regex.ReplaceAllString(banner, p.regexes[regexKey].To)
 	}

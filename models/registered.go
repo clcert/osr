@@ -23,6 +23,7 @@ var DefaultModels = ModelsList{
 		DomainCategoryModel,
 		DomainToCategoryModel,
 		ReportTypeModel,
+		SoftwareVersionModel,
 		// Scans
 		CertificateModel,
 		DarknetPacketModel,
