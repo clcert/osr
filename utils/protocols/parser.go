@@ -33,7 +33,6 @@ type Parser struct {
 	VersionRegex  *regexp.Regexp
 	ExtraRegexes  map[string]*regexp.Regexp
 	Ok            string
-	SplitParts    int
 	inited        bool
 }
 
@@ -93,9 +92,10 @@ func (p *Parser) IsValid(banner string) bool {
 func (p *Parser) GetSoftwareAndVersion(banner string) (software string, version string) {
 	p.init()
 	banner = strings.ToLower(banner)
-	// Removing OK string
+
+	// Removing ok string
 	banner = strings.Split(banner, "\n")[0]
-	banner = p.OkRegex.ReplaceAllLiteralString(banner, "")
+	banner = strings.Trim(p.OkRegex.ReplaceAllLiteralString(banner, ""), trimmable)
 
 	// changing dashes and lower dashes for spaces
 	banner = strings.ReplaceAll(banner, "-", " ")
@@ -103,15 +103,9 @@ func (p *Parser) GetSoftwareAndVersion(banner string) (software string, version 
 	for regexKey, regex := range p.ExtraRegexes {
 		banner = regex.ReplaceAllString(banner, p.regexes[regexKey].To)
 	}
-	// parsing software
+	// parsing software and version
 	software = strings.Trim(p.SoftwareRegex.FindString(banner), trimmable)
-
-	// parsing version
-	versionSlice := strings.SplitN(banner, " ", p.SplitParts)
-	if versionSlice == nil || len(versionSlice) < p.SplitParts {
-		return
-	}
-	version = strings.Trim(p.VersionRegex.FindString(versionSlice[p.SplitParts-1]), trimmable)
+	version = strings.Trim(p.VersionRegex.FindString(banner), trimmable)
 
 	// Removing version part from software
 	if len(version) > 0 {
