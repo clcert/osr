@@ -5,7 +5,7 @@ var ftpRegexes = map[string]FromTo{
 	"welcome":    {" ?welcome to", ""},
 	"none":       {" ?\\(none\\)", ""}, // Weird thing from GNU FTP server
 	"ftpService": {" ?ftp serv((er)|(ice)).*", ""},
-	"dow":        {" ?(mon)|(tue)|(wed)|(thu)|(fri)|(sat)|(sun),? .*", ""},
+	"dow":        {" (mon)|(tue)|(wed)|(thu)|(fri)|(sat)|(sun),? .*", ""},
 	"version":    {"version", ""},
 	"server":    {"serv((er)|(ice))", ""},
 }
@@ -19,17 +19,17 @@ var imapRegexes = map[string]FromTo{
 	"server":   {" ?serv((er)|(ice))", ""},
 	"brackets": {" ?\\[.*\\]", ""},
 	"lessmore": {" ?<.*>", ""},
-	"dow":      {" ?(mon)|(tue)|(wed)|(thu)|(fri)|(sat)|(sun),? .*", ""},
-	"monthSpanish":   {" ?(ene)|(feb)|(mar)|(abr)|(may)|(jun)|(jul)|(ago)|(sep)|(oct)|(nov)|(dic)? .*", ""},
-	"monthEngilish":  {" ?(ene)|(feb)|(mar)|(apr)|(may)|(jun)|(jul)|(aug)|(sep)|(oct)|(nov)|(dec)? .*", ""},
+	"dow":      {" (mon)|(tue)|(wed)|(thu)|(fri)|(sat)|(sun),? .*", ""},
+	"monthSpanish":   {" (ene)|(feb)|(mar)|(abr)|(may)|(jun)|(jul)|(ago)|(sep)|(oct)|(nov)|(dic)? .*", ""},
+	"monthEngilish":  {" (ene)|(feb)|(mar)|(apr)|(may)|(jun)|(jul)|(aug)|(sep)|(oct)|(nov)|(dec)? .*", ""},
 }
 
 var smtpRegexes = map[string]FromTo{
 	"ready":          {" ?ready.*", ""}, // Some SMTP Servers write "ready at DATE"
 	"randomhex":      {" ?\\([0-9a-f]*\\)", ""},
-	"dow":            {" ?(mon)|(tue)|(wed)|(thu)|(fri)|(sat)|(sun),? .*", ""},
-	"monthSpanish":   {" ?(ene)|(feb)|(mar)|(abr)|(may)|(jun)|(jul)|(ago)|(sep)|(oct)|(nov)|(dic)? .*", ""},
-	"monthEngilish":  {" ?(ene)|(feb)|(mar)|(apr)|(may)|(jun)|(jul)|(aug)|(sep)|(oct)|(nov)|(dec)? .*", ""},
+	"dow":            {" (mon)|(tue)|(wed)|(thu)|(fri)|(sat)|(sun),? .*", ""},
+	"monthSpanish":   {" (ene)|(feb)|(mar)|(abr)|(may)|(jun)|(jul)|(ago)|(sep)|(oct)|(nov)|(dic)? .*", ""},
+	"monthEngilish":  {" (ene)|(feb)|(mar)|(apr)|(may)|(jun)|(jul)|(aug)|(sep)|(oct)|(nov)|(dec)? .*", ""},
 	"esmtpAndBefore": {".* esmtp ", ""},
 }
 
