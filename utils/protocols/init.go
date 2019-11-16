@@ -10,7 +10,7 @@ func init() {
 		},
 		&Parser{
 			Name:       "ssh",
-			Ok:         "^ssh",
+			Ok:         "^ssh-\\d.\\d+-",
 		},
 		&Parser{
 			Name:       "imap",

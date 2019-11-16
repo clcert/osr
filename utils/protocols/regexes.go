@@ -1,44 +1,96 @@
 package protocols
 
-var ftpRegexes = map[string]FromTo{
-	"brackets":   {" ?\\[.*\\]", ""},
-	"welcome":    {" ?welcome to", ""},
-	"none":       {" ?\\(none\\)", ""}, // Weird thing from GNU FTP server
-	"ftpService": {" ?ftp serv((er)|(ice)).*", ""},
-	"dow":        {" (mon)|(tue)|(wed)|(thu)|(fri)|(sat)|(sun),? .*", ""},
-	"version":    {"version", ""},
-	"server":    {"serv((er)|(ice))", ""},
+// Regexes
+
+const trimmable = " .,;\n\t\r-_="
+const softwareRegex = "[a-z][a-z0-9.\\-_ ]+" // starts with letter
+const versionRegex = "v?([0-9]+)([\\-+a-z]?\\.[a-z0-9]+)+"
+
+// Common Regexes
+var (
+	dowEnglish     = FromTo{" (mon)|(tue)|(wed)|(thu)|(fri)|(sat)|(sun),? .*", ""}
+	dowSpanish     = FromTo{" (lun)|(mar)|(mie)|(jue)|(vie)|(s[aá]b)|(dom),? .*", ""}
+	monthEnglish   = FromTo{" (jan)|(feb)|(mar)|(apr)|(may)|(jun)|(jul)|(aug)|(sep)|(oct)|(nov)|(dec),? .*", ""}
+	monthSpanish   = FromTo{" (ene)|(feb)|(mar)|(abr)|(may)|(jun)|(jul)|(ago)|(sep)|(oct)|(nov)|(dic),? .*", ""}
+	localhost      = FromTo{" ?localhost", ""}
+	domain         = FromTo{"^ ?([a-z0-9áéíóúñ\\-]*)(\\.[a-z0-9áéíóúñ\\-]+)+\\.?", ""}
+	serviceServer  = FromTo{" ?serv((er)|(ice)|(idor)|(icio))", ""}
+	welcomeTo      = FromTo{" ?((welcome to)|(bienvenido al?))", ""}
+	version        = FromTo{" ?((version)|(release))", ""}
+	ready          = FromTo{" ?(is )?ready.*", ""}
+	allInBrackets  = FromTo{" ?\\[.*\\]", ""}
+	hexIPBrackets  = FromTo{" ?\\[[0-9a-f.:]*\\]", ""}
+	hexParenthesis = FromTo{" ?\\([0-9a-f]*\\)", ""}
+	lessmore       = FromTo{" ?<.*>", ""}
+)
+
+var ftpRegexes = []FromTo{
+	{" ?\\(none\\)", ""},           // Weird thing from GNU FTP server
+	{"\\(", ""},                    // Sometimes the software and version is inside parenthesis
+	{"\\)", ""},                    // Sometimes the software and version is inside parenthesis
+	{" ?ftp serv((er)|(ice))", ""}, // XXX ftp server or XXX ftp service (and the rest is useless)
+	allInBrackets,
+	version,
+	welcomeTo,
+	serviceServer,
+	dowEnglish,
+	dowSpanish,
+	monthSpanish,
+	monthEnglish,
+	domain,
+	localhost,
 }
 
-var httpRegexes = map[string]FromTo{
-	"brackets": {"/", " "}, // Generally slash separes software from version
+var httpRegexes = []FromTo{
+	{"/", " "}, // Generally slash separes software from version
 }
 
-var imapRegexes = map[string]FromTo{
-	"ready":    {"( ?is )?ready.*", ""}, // Some IMAP Servers write "ready at DATE"
-	"server":   {" ?serv((er)|(ice))", ""},
-	"brackets": {" ?\\[.*\\]", ""},
-	"lessmore": {" ?<.*>", ""},
-	"dow":      {" (mon)|(tue)|(wed)|(thu)|(fri)|(sat)|(sun),? .*", ""},
-	"monthSpanish":   {" (ene)|(feb)|(mar)|(abr)|(may)|(jun)|(jul)|(ago)|(sep)|(oct)|(nov)|(dic)? .*", ""},
-	"monthEngilish":  {" (ene)|(feb)|(mar)|(apr)|(may)|(jun)|(jul)|(aug)|(sep)|(oct)|(nov)|(dec)? .*", ""},
+var imapRegexes = []FromTo{
+	{" ?imap\\d?([a-z0-9]*)", ""}, // IMAP4
+	allInBrackets,
+	lessmore,
+	ready,
+	version,
+	welcomeTo,
+	serviceServer,
+	dowEnglish,
+	dowSpanish,
+	monthSpanish,
+	monthEnglish,
+	domain,
+	localhost,
 }
 
-var smtpRegexes = map[string]FromTo{
-	"ready":          {" ?ready.*", ""}, // Some SMTP Servers write "ready at DATE"
-	"randomhex":      {" ?\\([0-9a-f]*\\)", ""},
-	"dow":            {" (mon)|(tue)|(wed)|(thu)|(fri)|(sat)|(sun),? .*", ""},
-	"monthSpanish":   {" (ene)|(feb)|(mar)|(abr)|(may)|(jun)|(jul)|(ago)|(sep)|(oct)|(nov)|(dic)? .*", ""},
-	"monthEngilish":  {" (ene)|(feb)|(mar)|(apr)|(may)|(jun)|(jul)|(aug)|(sep)|(oct)|(nov)|(dec)? .*", ""},
-	"esmtpAndBefore": {".* esmtp ", ""},
+var smtpRegexes = []FromTo{
+	{" ?esmtp", ""}, // esmtp
+	hexIPBrackets,
+	hexParenthesis,
+	lessmore,
+	ready,
+	version,
+	welcomeTo,
+	serviceServer,
+	dowEnglish,
+	dowSpanish,
+	monthSpanish,
+	monthEnglish,
+	domain,
+	localhost,
 }
 
-var pop3Regexes = map[string]FromTo{
-	"ready":    {"( ?is )?ready.*", ""}, // Some POP3 Servers write "ready at DATE"
-	"server":   {" ?serv(er|ice)", ""},
-	"pop3":     {" ?pop3", ""},
-	"lessmore": {" ?<.*>", ""},
-	"dow":      {" ?(mon)|(tue)|(wed)|(thu)|(fri)|(sat)|(sun),? .*", ""},
-	"monthSpanish":   {" ?(ene)|(feb)|(mar)|(abr)|(may)|(jun)|(jul)|(ago)|(sep)|(oct)|(nov)|(dic)? .*", ""},
-	"monthEngilish":  {" ?(ene)|(feb)|(mar)|(apr)|(may)|(jun)|(jul)|(aug)|(sep)|(oct)|(nov)|(dec)? .*", ""},
+var pop3Regexes = []FromTo{
+	{" ?pop3", ""},
+	hexIPBrackets,
+	hexParenthesis,
+	lessmore,
+	ready,
+	version,
+	welcomeTo,
+	serviceServer,
+	dowEnglish,
+	dowSpanish,
+	monthSpanish,
+	monthEnglish,
+	domain,
+	localhost,
 }

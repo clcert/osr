@@ -7,8 +7,6 @@ import (
 	"strings"
 )
 
-const trimmable = " .,;\n\t\r-_="
-
 // FromTo Defines a pair of strings.
 // The first string represents a regexp to find and the second one the replacement.
 type FromTo struct {
@@ -26,14 +24,14 @@ func (m ParserMap) Add(parsers ...*Parser) {
 
 // Parser defines a struct capable to parse version and software from a Banner.
 type Parser struct {
-	Name          string
-	regexes       map[string]FromTo
-	OkRegex       *regexp.Regexp
-	SoftwareRegex *regexp.Regexp
-	VersionRegex  *regexp.Regexp
-	ExtraRegexes  map[string]*regexp.Regexp
-	Ok            string
-	inited        bool
+	Name             string
+	regexes          []FromTo
+	StartFormatRegex *regexp.Regexp
+	SoftwareRegex    *regexp.Regexp
+	VersionRegex     *regexp.Regexp
+	ExtraRegexes     []*regexp.Regexp
+	Ok               string
+	inited           bool
 }
 
 // init prepares the parser for its use.
@@ -47,74 +45,71 @@ func (p *Parser) init() {
 				Err:  err,
 			})
 		}
-		softRegex, err := regexp.Compile("[a-z0-9.\\-_ ]*")
+		softRegex, err := regexp.Compile(softwareRegex)
 		if err != nil {
 			panic(panics.Info{
 				Text: fmt.Sprintf("Protocol Software Regex is not well defined."),
 				Err:  err,
 			})
 		}
-		verRegex, err := regexp.Compile("v?([0-9]+)([\\-+a-z]?\\.[\\-+a-z]?[0-9]+)+")
+		verRegex, err := regexp.Compile(versionRegex)
 		if err != nil {
 			panic(panics.Info{
 				Text: fmt.Sprintf("Protocol Version Regex is not well defined."),
 				Err:  err,
 			})
 		}
-		p.OkRegex = okRegex
+		p.StartFormatRegex = okRegex
 		p.SoftwareRegex = softRegex
 		p.VersionRegex = verRegex
-		p.ExtraRegexes = make(map[string]*regexp.Regexp)
+		p.ExtraRegexes = make([]*regexp.Regexp, len(p.regexes))
 		if p.regexes != nil {
-			for regexType, regex := range p.regexes {
+			for pos, regex := range p.regexes {
 				regex, err := regexp.Compile(regex.From)
 				if err != nil {
 					panic(panics.Info{
-						Text: fmt.Sprintf("%s Regex is not well defined: %s", regexType, regex),
+						Text: fmt.Sprintf("Regex in position %d is not well defined: %s", pos, regex),
 						Err:  err,
 					})
 				}
-				p.ExtraRegexes[regexType] = regex
+				p.ExtraRegexes[pos] = regex
 			}
 		}
+		p.inited = true
 	}
-	p.inited = true
 }
 
 // Returns true if the banner is valid
 func (p *Parser) IsValid(banner string) bool {
 	p.init()
 	banner = strings.ToLower(strings.SplitN(banner, "\n", 2)[0])
-	return p.OkRegex.MatchString(banner)
+	return p.StartFormatRegex.MatchString(banner)
 }
+
 // Returns the software name and version of the service obtained from the banner.
 // If it can find a value, it returns an empty string.
 func (p *Parser) GetSoftwareAndVersion(banner string) (software string, version string) {
 	p.init()
-	banner = strings.ToLower(banner)
-
 	// Removing ok string
-	banner = strings.Split(banner, "\n")[0]
-	banner = strings.Trim(p.OkRegex.ReplaceAllLiteralString(banner, ""), trimmable)
+	banner = strings.ToLower(strings.SplitN(banner, "\n", 2)[0])
+	banner = strings.Trim(p.StartFormatRegex.ReplaceAllLiteralString(banner, ""), trimmable)
 
-	// changing dashes and lower dashes for spaces
-	banner = strings.ReplaceAll(banner, "-", " ")
-	banner = strings.ReplaceAll(banner, "_", " ")
-	for regexKey, regex := range p.ExtraRegexes {
-		banner = regex.ReplaceAllString(banner, p.regexes[regexKey].To)
+	for pos, regex := range p.ExtraRegexes {
+		banner = regex.ReplaceAllString(banner, p.regexes[pos].To) // length of both arrays is the same
 	}
 	// parsing software and version
 	software = strings.Trim(p.SoftwareRegex.FindString(banner), trimmable)
 	version = strings.Trim(p.VersionRegex.FindString(banner), trimmable)
 
-	// Removing version part from software
-	if len(version) > 0 {
-		software = strings.Trim(strings.Split(software, p.SoftwareRegex.FindString(version))[0], trimmable)
-	}
+	// If software is null, don't return a version.
 	if len(software) == 0 {
 		return "", ""
+	} else if len(version) > 0 { // remove version from software string
+		// split will never be empty because software len is larger than 0
+		software = strings.Trim(strings.Split(software, version)[0], trimmable)
 	}
-	// removing v from versions (some servers have it, some servers not)
-	version = strings.TrimPrefix(version, "v")
+
+	// trim "v" from version code
+	version = strings.TrimLeft(version, "v")
 	return
 }

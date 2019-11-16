@@ -7,6 +7,13 @@ import (
 	"time"
 )
 
+// Grabber errors
+const SocketError = "Read or write socket error"
+const ConnError = "Connection error"
+const HTTPSHandshakeError = "Handshake error"
+const HTTPHeaderError = "Get header error"
+const StartProtocolError = "Start Protocol error"
+
 // Base Grabber Entry
 // It includes a IP scanned and an Error string.
 // The error string could be not empty but still have some data around there
@@ -26,6 +33,8 @@ func (e *BaseEntry) GetTime(format string, defaultTime time.Time) time.Time {
 
 func (e *BaseEntry) GetError() error {
 	if e.Error == "" {
+		return nil
+	} else if e.Error == StartProtocolError { // Ignore this common error
 		return nil
 	}
 	return fmt.Errorf(e.Error)
