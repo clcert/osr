@@ -109,7 +109,7 @@ func (s *Server) GetSSHClient() (*ssh.Client, error) {
 	if s.sshClient != nil {
 		return s.sshClient, nil
 	}
-	return nil, fmt.Errorf("server not initialized. use Connect() before using this command")
+	return nil, ServerNotInitialized
 }
 
 func (s *Server) GetSFTPClient() (*sftp.Client, error) {

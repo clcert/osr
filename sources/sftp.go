@@ -99,7 +99,7 @@ func (source *SFTPSource) Init() error {
 	}
 	source.server = server
 
-	if source.Path == "" {
+	if len(source.Path) == 0 {
 		// We use the default one
 		client, err := server.GetSFTPClient()
 		if err != nil {
@@ -112,13 +112,13 @@ func (source *SFTPSource) Init() error {
 		source.Path = folder
 	}
 
-	if source.Queries != nil {
+	if len(source.Queries) > 0 {
 		if err := executeQueries(source.server, source.Path, source.Queries, source.params); err != nil {
 			return err
 		}
 	}
 
-	if source.Script != "" {
+	if len(source.Script) > 0 {
 		if err := source.server.ExecuteLocalScript(source.Path, source.Script, source.params); err != nil {
 			return err
 		}

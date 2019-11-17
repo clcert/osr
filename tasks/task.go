@@ -168,7 +168,7 @@ func (task *Task) execute(processName string) error {
 		}
 		sourcesList = append(sourcesList, source)
 		if err := source.Init(); err != nil {
-			return err
+			return fmt.Errorf("Error initializing source: %s", err)
 		}
 		task.AddAttachments(source)
 	}
