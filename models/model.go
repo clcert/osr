@@ -190,7 +190,7 @@ func (s *ModelsList) CreateTables() error {
 			logs.Log.WithFields(logrus.Fields{
 				"model": m.Name,
 				"error": err,
-			}).Error("Error executing the statements before model creation: %s", err)
+			}).Errorf("Error executing the statements before model creation: %s", err)
 			return err
 		}
 		logs.Log.WithFields(logrus.Fields{
@@ -203,7 +203,7 @@ func (s *ModelsList) CreateTables() error {
 		if err != nil {
 			logs.Log.WithFields(logrus.Fields{
 				"model": m.Name,
-			}).Error("Error creating table for model: %s", err)
+			}).Errorf("Error creating table for model: %s", err)
 			return err
 		}
 		err = m.AfterCreateTable(db)

@@ -38,7 +38,7 @@ var ProtocolToPorts = map[string][]uint16{
 // returns UDP if the port scanned is related to an UDP protocol.
 func GetTransport(port uint16) PortProtocol {
 	switch port {
-	case 53,    // DNS
+	case 	53,    // DNS
 		123,   // NTP
 		520,   // RIP
 		623,   // ASF-RMCP
