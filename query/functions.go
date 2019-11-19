@@ -42,7 +42,8 @@ func Execute(queryFiles []string, outFolder string, whitelist []string, headers 
 			if err != nil {
 				return err
 			}
-			if err := query.Export(db, newFile, headers); err != nil {
+			chErr := query.Export(db, newFile, headers);
+			if <-chErr != nil {
 				return err
 			}
 		}

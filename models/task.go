@@ -40,14 +40,16 @@ func (task *Task) GetStatus() string {
 }
 
 // Creates a new task session.
-func NewTaskSession(db *pg.DB) (*Task, error) {
+func NewTaskSession(db *pg.DB, save bool) (*Task, error) {
 	newImport := &Task{
 		StartDate: time.Now(),
 		Status:    PROCESSING,
 	}
-	err := db.Insert(newImport)
-	if err != nil {
-		return newImport, err
+	if save {
+		err := db.Insert(newImport)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return newImport, nil
 }

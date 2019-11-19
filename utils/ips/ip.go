@@ -4,10 +4,6 @@ import (
 	"net"
 )
 
-// Represents a sorted list of IPs
-// If it is not sorted, everything will fail.
-type IPChan chan net.IP
-
 func CopyIP(ip net.IP) (ipCopy net.IP) {
 	newIP := make(net.IP,len(ip))
 	copy(newIP, ip)

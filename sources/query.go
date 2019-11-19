@@ -144,8 +144,8 @@ func (source *QuerySource) GetAttachments() []string {
 
 func (srcFile *QueryFile) Open() (io.Reader, error) {
 	go func() {
-		err := srcFile.query.Export(srcFile.source.conn, srcFile.writer, true)
-		_ = srcFile.writer.CloseWithError(err)
+		chErr := srcFile.query.Export(srcFile.source.conn, srcFile.writer, true)
+		_ = srcFile.writer.CloseWithError(<-chErr)
 	}()
 	return srcFile.reader, nil
 }

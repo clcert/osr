@@ -1,23 +1,13 @@
 package ips
 
 import (
+	"github.com/clcert/osr/utils"
 	"net"
 )
 
 // Represents a sorted list of Subnets
 // If it is not sorted, everything will fail.
 type SubnetList []*net.IPNet
-
-func (list SubnetList) ToIPChan() IPChan {
-	ipChan := make(IPChan, 0)
-	go func() {
-		for _, subnet := range list {
-			SubnetToIPs(subnet, ipChan)
-		}
-		close(ipChan)
-	}()
-	return ipChan
-}
 
 // Matches returns a subnet in the SubnetList if the IP passed as argument matches it
 // and nil if no ips match it.
@@ -120,15 +110,6 @@ func NewIPMask(oldMask net.IPMask, addBits int) (newMask net.IPMask) {
 	return net.CIDRMask(ones+addBits, bits)
 }
 
-// SubnetToIPs transforms a subnet on a list of IPs
-func SubnetToIPs(subnet *net.IPNet, ch IPChan) {
-	startIP := Start(subnet)
-	endIP := End(subnet)
-	for curIP := startIP; CompareBytes(curIP, endIP) <= 0; curIP = AddIP(curIP, 1) {
-		ch <- curIP
-	}
-}
-
 // Start returns the first IP on the interval defined by the Subnet
 func Start(subnet *net.IPNet) net.IP {
 	if subnet == nil {
@@ -144,4 +125,19 @@ func End(subnet *net.IPNet) net.IP {
 	}
 	masked := subnet.IP.Mask(subnet.Mask)
 	return OperateBytes(masked, subnet.Mask, func(b1, b2 byte) byte { return b1 ^ ^b2 })
+}
+
+func (list SubnetList) ToRowChan() *utils.RowChan {
+	rowChan := utils.NewRowChan()
+	go func() {
+		for _, subnet := range list {
+			startIP := Start(subnet)
+			endIP := End(subnet)
+			for curIP := startIP; CompareBytes(curIP, endIP) <= 0; curIP = AddIP(curIP, 1) {
+				rowChan.Put(map[string]string{"ip": curIP.String()})
+			}
+		}
+		rowChan.Close()
+	}()
+	return rowChan
 }

@@ -40,7 +40,8 @@ func (entry *Query) Execute(db *pg.DB, params ...interface{}) (pg.Result, error)
 	return db.Exec(entry.SQL, params...)
 }
 
-func (entry *Query) Export(db *pg.DB, file io.Writer, headers bool) error {
+func (entry *Query) Export(db *pg.DB, file io.Writer, headers bool) chan error {
+	chErr := make(chan error)
 	logs.Log.WithFields(logrus.Fields{
 		"query":       entry.Name,
 		"description": entry.Description,
@@ -50,18 +51,22 @@ func (entry *Query) Export(db *pg.DB, file io.Writer, headers bool) error {
 	if headers {
 		stmt += " HEADER"
 	}
-	result, err := db.CopyTo(file, stmt)
-	if err != nil {
-		logs.Log.WithFields(logrus.Fields{
-			"query": entry.Name,
-		}).Errorf("Error executing query: %s", err)
-		return err
-	}
-	logs.Log.WithFields(logrus.Fields{
-		"query":         entry.Name,
-		"rows_affected": result.RowsAffected(),
-	}).Info("Query done!")
-	return nil
+	go func() {
+		result, err := db.CopyTo(file, stmt)
+		if err != nil {
+			logs.Log.WithFields(logrus.Fields{
+				"query": entry.Name,
+			}).Errorf("Error executing query: %s", err)
+		} else {
+			logs.Log.WithFields(logrus.Fields{
+				"query":         entry.Name,
+				"rows_affected": result.RowsAffected(),
+			}).Info("Query done!")
+		}
+		chErr <- err
+		close(chErr)
+	}()
+	return chErr
 }
 
 // Opens a query file and returns the queries specified in whitelist

@@ -21,6 +21,7 @@ type TaskConfig struct {
 	Name         string           // Name of the task
 	Description  string           // Description of the task
 	AbortOnError bool             // If true, task aborts if a process throws an error
+	Incognito    bool             // If true, task is not registered and taskID is assigned to 0
 	Parallel     bool             // Tasks are executed in parallel (?)
 	Params       utils.Params     // A list of global parameters
 	Processes    []*ProcessConfig // A list of config for processes.
@@ -63,7 +64,7 @@ func New(config *TaskConfig, params []string) (newTask *Task, err error) {
 		}).Error("Couldn't connect to database")
 		return
 	}
-	currentTask, err := models.NewTaskSession(dbHandler)
+	currentTask, err := models.NewTaskSession(dbHandler, !config.Incognito)
 	if err != nil {
 		logs.Log.WithFields(logrus.Fields{
 			"error": err,
@@ -82,6 +83,7 @@ func New(config *TaskConfig, params []string) (newTask *Task, err error) {
 	}
 	logs.Log.WithFields(logrus.Fields{
 		"importer": newTask.TaskSession.ID,
+		"incognito": config.Incognito,
 	}).Info("Created new task session!")
 	return
 }
@@ -111,11 +113,19 @@ func (task *Task) Execute() {
 		"failed":    task.GetFailed(),
 	}).Info("All importer functions executed")
 	task.TaskSession.Succeeded()
-	err := task.TaskSession.Save(task.DB)
-	if err != nil {
+	if !task.Incognito {
+		err := task.TaskSession.Save(task.DB)
+		if err != nil {
+			logs.Log.WithFields(logrus.Fields{
+				"error": err,
+			}).Error("Couldn't save import as succeeded in database")
+		}
+	} else {
 		logs.Log.WithFields(logrus.Fields{
-			"error": err,
-		}).Error("Couldn't save import as succeeded in database")
+			"task_id":   task.TaskSession.ID,
+			"succeeded": task.GetSucceeded(),
+			"failed":    task.GetFailed(),
+		}).Info("Task was not saved because incognito mode is on")
 	}
 	return
 }

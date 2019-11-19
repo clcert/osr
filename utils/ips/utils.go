@@ -5,7 +5,7 @@ package ips
 // if an input is shorter than the other, the shorter one is extended with zeros.
 // If b1 or b2 are nil, nothing makes sense and we panic
 // TODO: Change for builtin
-func CompareBytes(b1, b2 []byte) int {
+func CompareBytes(b1, b2 []byte) int8 {
 	if b1 == nil && b2 == nil {
 		panic("cannot compare with nil array")
 	}

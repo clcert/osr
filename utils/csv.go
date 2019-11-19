@@ -7,24 +7,37 @@ import (
 )
 
 type HeadedCSV struct {
+	*HeadedCSVOptions
 	Reader  *csv.Reader
+
+}
+
+type HeadedCSVOptions struct{
+	Name string
 	Headers []string
 }
 
 // Returns a new headed CSV from a reader source.
 // if headers is not nil, it defines the headers from that list. If it is nil, the
 // first line of the reader is the headers.
-func NewHeadedCSV(source io.Reader, headers []string) (headedCSV *HeadedCSV, err error) {
+func NewHeadedCSV(source io.Reader, options *HeadedCSVOptions) (headedCSV *HeadedCSV, err error) {
+	if options == nil {
+		options = &HeadedCSVOptions{}
+	}
 	csvReader := csv.NewReader(source)
-	if headers == nil {
-		headers, err = csvReader.Read()
+	if options.Headers == nil {
+		headers, err := csvReader.Read()
 		if err != nil {
 			return nil, err
 		}
+		options.Headers = headers
+	}
+	if len(options.Name) == 0 {
+		options.Name = GenerateRandomString(16)
 	}
 	headedCSV = &HeadedCSV{
 		Reader:  csvReader,
-		Headers: headers,
+		HeadedCSVOptions: options,
 	}
 	return
 }
@@ -93,4 +106,3 @@ func (csv *HeadedCSV) ToMapArray() ([]map[string]string, error) {
 	}
 	return mapArray, nil
 }
-

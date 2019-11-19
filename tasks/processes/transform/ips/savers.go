@@ -3,12 +3,20 @@ package ips
 import (
 	"github.com/clcert/osr/savers"
 	"github.com/clcert/osr/tasks"
+	"github.com/clcert/osr/utils"
 	"github.com/clcert/osr/utils/ips"
 	"net"
 )
 
-func SaveIPs(saver savers.Saver, ips ips.IPChan, id string, args *tasks.Args) {
-	for ip := range ips {
+func SaveIPs(saver savers.Saver, rows *utils.RowChan, id string, args *tasks.Args) {
+	for rows.IsOpen() {
+		row := rows.Get()
+		ipStr, ok := row["ip"];
+		if !ok {
+			args.Log.Errorf("cannot save ip: ip field not found")
+			continue
+		}
+		ip := net.ParseIP(ipStr)
 		err := saver.Save(savers.Savable{
 			Object: struct{IP net.IP `structs:",string"`}{ip},
 			Meta: map[string]string{

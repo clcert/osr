@@ -44,7 +44,6 @@ var TaskCmd = &cobra.Command{
 				"global_params": config.Params,
 				"file":          configName,
 			}).Info("executing task file")
-
 			task, err := tasks.New(config, params)
 			if err != nil {
 				panic(&panics.Info{
