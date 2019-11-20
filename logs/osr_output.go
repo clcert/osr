@@ -15,7 +15,7 @@ type OSROutput struct {
 }
 
 // NewOutput creates a new output with the name and folder path defined in the arguments.
-// TODO: Join with NewLog
+// TODO: Compare with NewLog
 func NewOutput(folder, name string) (*OSROutput, error) {
 	logsPath, err := getLogsPath()
 	if err != nil {

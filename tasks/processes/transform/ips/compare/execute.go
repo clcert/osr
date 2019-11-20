@@ -32,12 +32,13 @@ func Execute(args *tasks.Args) error {
 				return fmt.Errorf("cannot parse second file: %s", err)
 			}
 			// With subnet intersection
-			commonNet, lessNet, moreNet := ips.CompareSubnets(subnet1, subnet2)
-			common, less, more = commonNet.ToRowChan(), lessNet.ToRowChan(), moreNet.ToRowChan()
+			commonNet, lessNet, moreNet := subnet1.Compare(subnet2)
+			common, less, more = commonNet.ToRowChan("common"), lessNet.ToRowChan("less"), moreNet.ToRowChan("more")
 		} else if csv1.HasHeader("ip") && csv2.HasHeader("ip") {
 			chan1 := utils.CSVToRowChan(csv1)
 			chan2 := utils.CSVToRowChan(csv2)
-			common, less, more = chan1.Compare(chan2, ips.IPCompare)
+			_ = chan1.Join(chan2, ips.Compare)
+
 		} else {
 			return fmt.Errorf("both files must have the same header between this list of headers: [ip, subnet], but they have this headers: file1: %+v; file2: %+v", csv1.Headers, csv2.Headers)
 		}

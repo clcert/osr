@@ -78,6 +78,62 @@ func IntersectSubnets(subnet1, subnet2 *net.IPNet) (intersected *net.IPNet, befo
 	}
 }
 
+func (list1 SubnetList) Compare(list2 SubnetList) (common, less, more SubnetList) {
+	common, less, more = make(SubnetList, 0), make(SubnetList, 0), make(SubnetList, 0)
+	stack1 := &SubnetStack{
+		stack: make([]*net.IPNet, 0),
+	}
+	stack1.PushReverse(list1...)
+
+	stack2 := &SubnetStack{
+		stack: make([]*net.IPNet, 0),
+	}
+	stack2.PushReverse(list2...)
+
+	for {
+		subnet1 := stack1.Pop()
+		subnet2 := stack2.Pop()
+		if subnet1 == nil && subnet2 == nil {
+			break
+		} else if subnet2 == nil {
+			// only subnet1 has still IPs, add it to less.
+			less = append(less, CopySubnet(subnet1))
+		} else if subnet1 == nil {
+			// onlySubnet2 has still IPs, add it to more.
+			more = append(more, CopySubnet(subnet2))
+		} else {
+			thisCommon, thisBefore, thisAfter := IntersectSubnets(subnet1, subnet2)
+			if thisCommon != nil {
+				// There was intersection, there could be before and after
+				common = append(common, thisCommon)
+				// Before should be pushed to more or less, depending if thisCommon is equal to subnet1 or subnet2
+				// After should be pushed to the other stack
+				if CompareBytes(thisCommon.IP, subnet1.IP) == 0 &&
+					CompareBytes(thisCommon.Mask, subnet1.Mask) == 0 {
+					// Extra is from subnet2 because subnet1 is the intersection
+					more = append(more, thisBefore...)
+					stack2.PushReverse(thisAfter...)
+				} else if CompareBytes(thisCommon.IP, subnet2.IP) == 0 &&
+					CompareBytes(thisCommon.Mask, subnet2.Mask) == 0 {
+					// Extra is from subnet1 because subnet2 is the intersection
+					less = append(less, thisBefore...)
+					stack1.PushReverse(thisAfter...)
+				}
+			} else {
+				if CompareBytes(subnet1.IP, subnet2.IP) < 0 {
+					less = append(less, subnet1)
+					stack2.Push(subnet2)
+				} else if CompareBytes(subnet1.IP, subnet2.IP) > 0 {
+					more = append(more, subnet2)
+					stack1.Push(subnet1)
+				}
+			}
+		}
+	}
+	return
+}
+
+
 func SplitSubnet(subnet *net.IPNet) (left, right *net.IPNet) {
 	// Xoring previous mask with new one
 	newMask := NewIPMask(subnet.Mask, 1)
@@ -127,8 +183,8 @@ func End(subnet *net.IPNet) net.IP {
 	return OperateBytes(masked, subnet.Mask, func(b1, b2 byte) byte { return b1 ^ ^b2 })
 }
 
-func (list SubnetList) ToRowChan() *utils.RowChan {
-	rowChan := utils.NewRowChan()
+func (list SubnetList) ToRowChan(tag string) *utils.RowChan {
+	rowChan := utils.NewRowChan(tag)
 	go func() {
 		for _, subnet := range list {
 			startIP := Start(subnet)

@@ -3,8 +3,10 @@ package ips
 import (
 	"fmt"
 	"github.com/clcert/osr/sources"
+	"github.com/clcert/osr/tasks"
 	"github.com/clcert/osr/utils"
 	"github.com/clcert/osr/utils/ips"
+	"io"
 	"net"
 	"sync"
 )
@@ -74,7 +76,7 @@ func EntryToHeadedCSV(file sources.Entry) (*utils.HeadedCSV, error) {
 		return nil, err
 	}
 	csv, err := utils.NewHeadedCSV(reader, &utils.HeadedCSVOptions{
-		Name:    file.Name(),
+		Name: file.Name(),
 	})
 	if err != nil {
 		err = fmt.Errorf("couldn't open file as CSV: %s", err)
@@ -83,7 +85,7 @@ func EntryToHeadedCSV(file sources.Entry) (*utils.HeadedCSV, error) {
 	return csv, nil
 }
 
-func IPCompare(map1, map2 map[string]string) (cmp int8, err error) {
+func Compare(map1, map2 map[string]string) (cmp int8, err error) {
 	ip1str, ok := map1["ip"]
 	if !ok {
 		err = fmt.Errorf("ip key not found on row")
@@ -97,4 +99,24 @@ func IPCompare(map1, map2 map[string]string) (cmp int8, err error) {
 	ip1, ip2 := net.ParseIP(ip1str), net.ParseIP(ip2str)
 	cmp = ips.CompareBytes(ip1, ip2)
 	return
+}
+
+func GetSubnets(csv *utils.HeadedCSV, args *tasks.Args) (ips.SubnetList, error) {
+	list := make(ips.SubnetList, 0)
+	for {
+		line, err := csv.NextRow()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+		_, subnet, err := net.ParseCIDR(line["subnet"]) // header should be subnet
+		if err != nil {
+			args.Log.Error("cannot save ip: %s", err)
+			continue
+		}
+		list = append(list, subnet)
+	}
+	return list, nil
 }

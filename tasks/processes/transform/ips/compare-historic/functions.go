@@ -2,54 +2,57 @@ package compare_historic
 
 import (
 	"fmt"
-	"github.com/clcert/osr/savers"
-	"github.com/clcert/osr/tasks"
+	"github.com/clcert/osr/tasks/processes/transform/ips"
 	"github.com/clcert/osr/utils"
-	"github.com/clcert/osr/utils/ips"
-	"net"
+	"strconv"
 	"time"
 )
 
-func IPCompareUntilDate(date time.Time, dateFormat string) utils.RowChanCompareFunc {
+func GetPortAndDate(m map[string]string) (port uint16, date time.Time, err error) {
+	dateStr, ok := m["date"]
+	if !ok {
+		err = fmt.Errorf("date key not found on row")
+		return
+	}
+	portStr, ok := m["port_number"]
+	if !ok {
+		err = fmt.Errorf("date key not found on row")
+		return
+	}
+	date, err = time.Parse(dateFormat, dateStr)
+	if err != nil {
+		return
+	}
+	portInt, err := strconv.Atoi(portStr)
+	if err != nil {
+		return
+	}
+	port = uint16(portInt)
+	return
+}
+
+func IPCompareUntilPortAndDate(port uint16, date time.Time, dateFormat string) utils.RowChanCompareFunc {
 	return func(map1, map2 map[string]string) (cmp int8, err error) {
-		date1str, ok := map1["date"]
-		if !ok {
-			err = fmt.Errorf("date key not found on row")
-			return
-		}
-		date2str, ok := map2["date"]
-		if !ok {
-			err = fmt.Errorf("date key not found on row")
-			return
-		}
-		date1, err := time.Parse(dateFormat, date1str)
+		port1, date1, err := GetPortAndDate(map1)
 		if err != nil {
 			return
 		}
-		date2, err := time.Parse(dateFormat, date2str)
+		port2, date2, err := GetPortAndDate(map2)
 		if err != nil {
 			return
 		}
-		if date1.After(date) && date2.After(date) {
-			err = fmt.Errorf("remaining values are from a future date")
-			return
-		} else if date1.After(date) {
-			cmp = 1
-		} else if date2.After(date) {
+		if !(port1 == port || port2 == port) { // None of them are of the port asked
+			err = fmt.Errorf("both ports are distinct to current port")
+		} else if !(date1.Equal(date) || date2.Equal(date)) { // None of them are of the date asked
+			err = fmt.Errorf("both dates are distinct to current port")
+		} else if port1 == port && date1.Equal(date) && port2 == port && date2.Equal(date) { // Both are of the port asked
+			cmp, err = ips.Compare(map1, map2)
+		} else if port1 == port && date1.Equal(date) { // The first one is from the protocol and port asked
 			cmp = -1
+		} else if port2 == port && date2.Equal(date) { // The seond one is from the port and protocol asked
+			cmp = 1
 		} else {
-			ip1str, ok := map1["ip"]
-			if !ok {
-				err = fmt.Errorf("ip key not found on row")
-				return
-			}
-			ip2str, ok := map2["ip"]
-			if !ok {
-				err = fmt.Errorf("ip key not found on row")
-				return
-			}
-			ip1, ip2 := net.ParseIP(ip1str), net.ParseIP(ip2str)
-			cmp = ips.CompareBytes(ip1, ip2)
+			err = fmt.Errorf("unknown error")
 		}
 		return
 	}
@@ -62,54 +65,76 @@ func getMinDate(chan1, chan2 *utils.RowChan) (date time.Time, err error) {
 		return
 	}
 	if chan1.IsOpen() {
-		dateStr1 := chan1.Get()
-		date1, err = time.Parse(dateFormat, dateStr1["date"])
+		elem1 := chan1.Peek()
+		date1, err = time.Parse(dateFormat, elem1["date"])
 		if err != nil {
+			return
+		}
+		if date1.IsZero() {
+			err = fmt.Errorf("date 1 cannot be zero")
 			return
 		}
 	}
 	if chan2.IsOpen() {
-		dateStr2 := chan2.Get()
-		date2, err = time.Parse(dateFormat, dateStr2["date"])
+		elem2 := chan2.Peek()
+		date2, err = time.Parse(dateFormat, elem2["date"])
 		if err != nil {
 			return
 		}
+		if date2.IsZero() {
+			err = fmt.Errorf("date 2 cannot be zero")
+			return
+		}
 	}
-	if !date1.IsZero() && date1.Before(date2) {
+	if !date1.IsZero() && (date1.Before(date2) || date1.Equal(date2)) {
 		date = date1
 		return
 	} else if !date2.IsZero() && date2.Before(date1) {
 		date = date2
 		return
-	} else {
-		err = fmt.Errorf("unknown error: this should not happen")
+	} else { // both dates are zero
+		err = fmt.Errorf("both dates are zero")
 		return
 	}
 }
 
-func CompareNextPair(csv1, csv2 *utils.HeadedCSV, saver savers.Saver, args *tasks.Args) error {
-	if !csv1.HasHeader("ip") || !csv2.HasHeader("date") {
-		return fmt.Errorf("file must have ip and date headers")
+func getMinPort(chan1, chan2 *utils.RowChan) (port uint16, err error) {
+	var port1, port2 int
+	if !chan1.IsOpen() && !chan2.IsOpen() {
+		err = fmt.Errorf("both channels closed")
+		return
 	}
-	chan1 := utils.CSVToRowChan(csv1)
-	chan2 := utils.CSVToRowChan(csv2)
-	for chan1.IsOpen() || chan2.IsOpen() {
-		date, err := getMinDate(chan1, chan2)
+	if chan1.IsOpen() {
+		elem1 := chan1.Peek()
+		port1, err = strconv.Atoi(elem1["port_number"])
 		if err != nil {
-			args.Log.Infof("Logging date %s...", date)
-			break
+			return
 		}
-		both, chan1Uniq, chan2Uniq := chan1.Compare(chan2, IPCompareUntilDate(date, dateFormat))
-		line := map[string]interface{}{
-			"date":    date,
-			"both":    both.Count(),
-			csv1.Name: chan1Uniq.Count(),
-			csv2.Name: chan2Uniq.Count(),
-		}
-		err = saver.Save(line)
-		if err != nil {
-			args.Log.Errorf("cannot save entry: %s", err)
+		if port1 == 0 {
+			err = fmt.Errorf("port 1 cannot be zero")
+			return
 		}
 	}
-	return nil
+	if chan2.IsOpen() {
+		elem2 := chan2.Peek()
+		port2, err = strconv.Atoi(elem2["port_number"])
+		if err != nil {
+			return
+		}
+		if port2 == 0 {
+			err = fmt.Errorf("port 2 cannot be zero")
+			return
+		}
+
+	}
+	if port1 != 0 && port1 <= port2 {
+		port = uint16(port1)
+		return
+	} else if port2 != 0 && port2 < port1 {
+		port2 = port2
+		return
+	} else { // both ports are zero
+		err = fmt.Errorf("both ports are zero")
+		return
+	}
 }

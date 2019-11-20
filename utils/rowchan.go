@@ -1,12 +1,14 @@
 package utils
 
 import (
+	"fmt"
 	"io"
 )
 
 // Represents a sorted list of rows
 // If it is not sorted, everything will fail.
 type RowChan struct {
+	Tag     string
 	ch      chan map[string]string
 	nextVal map[string]string
 	isOpen  bool
@@ -20,9 +22,10 @@ func (rch *RowChan) get() {
 	rch.isOpen = ok
 }
 
-func NewRowChan() *RowChan {
+func NewRowChan(tag string) *RowChan {
 	return &RowChan{
-		ch: make(chan map[string]string),
+		Tag: tag,
+		ch:  make(chan map[string]string),
 	}
 }
 
@@ -66,19 +69,21 @@ func (rch *RowChan) Close() {
 	close(rch.ch)
 }
 
-func (ch1 *RowChan) Compare(ch2 *RowChan, cmpFun RowChanCompareFunc) (chBoth, ch1Uniq, ch2Uniq *RowChan) {
-	chBoth = NewRowChan()
-	ch2Uniq = NewRowChan()
-	ch1Uniq = NewRowChan()
+func (ch1 *RowChan) Join(ch2 *RowChan, cmpFun RowChanCompareFunc) (chUnion *RowChan) {
+	chUnion = NewRowChan(fmt.Sprintf("union_%s_%s", ch1.Tag, ch2.Tag))
 	go func() {
 		for {
+			var row map[string]string
+			var tag string
 			if !ch1.IsOpen() && !ch2.IsOpen() {
 				// Both channels are closed, finishing
 				break
 			} else if !ch2.IsOpen() {
-				ch1Uniq.Put(ch1.Get())
+				row = ch1.Get()
+				tag = ch1.Tag
 			} else if !ch1.IsOpen() {
-				ch2Uniq.Put(ch2.Get())
+				row = ch2.Get()
+				tag = ch2.Tag
 			} else {
 				map1 := ch1.Peek()
 				map2 := ch2.Peek()
@@ -89,23 +94,27 @@ func (ch1 *RowChan) Compare(ch2 *RowChan, cmpFun RowChanCompareFunc) (chBoth, ch
 				}
 				switch cmp {
 				case -1:
-					ch1Uniq.Put(ch1.Get())
+					row = ch1.Get()
+					tag = ch1.Tag
 				case 0:
-					chBoth.Put(ch2.Get())
-				case 1:
-					ch2Uniq.Put(ch2.Get())
+					row = ch2.Get()
+					_ = ch1.Get() // clean this IP
+					tag = "both"
+				default:
+					row = ch2.Get()
+					tag = ch2.Tag
 				}
 			}
+			row["tag"] = tag
+			chUnion.Put(row)
 		}
-		chBoth.Close()
-		ch2Uniq.Close()
-		ch1Uniq.Close()
+		chUnion.Close()
 	}()
 	return
 }
 
 func CSVToRowChan(csv *HeadedCSV) *RowChan {
-	ch := NewRowChan()
+	ch := NewRowChan(csv.Name)
 	go func() {
 		for {
 			next, err := csv.NextRow()
