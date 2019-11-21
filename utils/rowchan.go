@@ -24,8 +24,9 @@ func (rch *RowChan) get() {
 
 func NewRowChan(tag string) *RowChan {
 	return &RowChan{
-		Tag: tag,
-		ch:  make(chan map[string]string),
+		Tag:    tag,
+		isOpen: true,
+		ch:     make(chan map[string]string),
 	}
 }
 
@@ -37,6 +38,9 @@ func (rch *RowChan) IsOpen() bool {
 }
 
 func (rch *RowChan) Peek() map[string]string {
+	if !rch.isOpen {
+		return nil
+	}
 	if rch.nextVal == nil {
 		rch.get()
 	}
@@ -44,6 +48,9 @@ func (rch *RowChan) Peek() map[string]string {
 }
 
 func (rch *RowChan) Get() map[string]string {
+	if !rch.isOpen {
+		return nil
+	}
 	if rch.nextVal == nil {
 		rch.get()
 	}
@@ -78,12 +85,6 @@ func (ch1 *RowChan) Join(ch2 *RowChan, cmpFun RowChanCompareFunc) (chUnion *RowC
 			if !ch1.IsOpen() && !ch2.IsOpen() {
 				// Both channels are closed, finishing
 				break
-			} else if !ch2.IsOpen() {
-				row = ch1.Get()
-				tag = ch1.Tag
-			} else if !ch1.IsOpen() {
-				row = ch2.Get()
-				tag = ch2.Tag
 			} else {
 				map1 := ch1.Peek()
 				map2 := ch2.Peek()
@@ -93,16 +94,18 @@ func (ch1 *RowChan) Join(ch2 *RowChan, cmpFun RowChanCompareFunc) (chUnion *RowC
 					break
 				}
 				switch cmp {
-				case -1:
+				case -1: // ch1 < ch2
 					row = ch1.Get()
 					tag = ch1.Tag
-				case 0:
+				case 0: // ch1 == ch2
 					row = ch2.Get()
 					_ = ch1.Get() // clean this IP
 					tag = "both"
-				default:
+				case 1: // ch1 > ch2
 					row = ch2.Get()
 					tag = ch2.Tag
+				default:
+					return
 				}
 			}
 			row["tag"] = tag

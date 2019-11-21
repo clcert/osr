@@ -86,6 +86,13 @@ func EntryToHeadedCSV(file sources.Entry) (*utils.HeadedCSV, error) {
 }
 
 func Compare(map1, map2 map[string]string) (cmp int8, err error) {
+	if map1 == nil {
+		cmp = 1
+		return
+	} else if map2 == nil {
+		cmp = -1
+		return
+	}
 	ip1str, ok := map1["ip"]
 	if !ok {
 		err = fmt.Errorf("ip key not found on row")

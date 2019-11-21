@@ -51,17 +51,16 @@ func CompareNextPair(csv1, csv2 *utils.HeadedCSV, saver savers.Saver, args *task
 	chan1 := utils.CSVToRowChan(csv1)
 	chan2 := utils.CSVToRowChan(csv2)
 	for chan1.IsOpen() || chan2.IsOpen() {
-		date, err := getMinDate(chan1, chan2)
+		port, date, err := GetMinPortAndDate(chan1, chan2)
 		if err != nil {
 			args.Log.Errorf("cannot get min date: %s", err)
 			break
 		}
-		port, err := getMinPort(chan1, chan2)
-		if err != nil {
-			args.Log.Errorf("cannot get min port: %s", err)
-			break
-		}
 		args.Log.Infof("Logging date %s and port %d", date, port)
+
+		if date.Year() == 2019 && date.Month() == 9 && date.Day() == 23 {
+			fmt.Printf("nooo");
+		}
 
 		joinChan := chan1.Join(chan2, IPCompareUntilPortAndDate(port, date, dateFormat))
 		countIPs := make(map[string]int)
