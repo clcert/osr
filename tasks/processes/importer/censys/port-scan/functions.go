@@ -8,32 +8,19 @@ import (
 	"github.com/clcert/osr/sources"
 	"github.com/clcert/osr/tasks"
 	"github.com/clcert/osr/utils/protocols"
+	"github.com/clcert/osr/utils/scans"
 	"github.com/sirupsen/logrus"
 	"net"
-	"strconv"
 	"strings"
 	"time"
 )
 
 func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) error {
-	srcIP := net.ParseIP("216.239.34.21") // Censys.io IP. NOT SCANNING IP!
 	filesRead := 0
-
-	blacklist := make(map[uint16]struct{})
-	if bl, ok := args.Params["blacklist"]; ok {
-		blSplit := strings.Split(bl, ",")
-		for _, portStr := range blSplit {
-			port, err := strconv.ParseInt(portStr, 10, 16)
-			if err != nil {
-				args.Log.WithFields(logrus.Fields{
-					"port": portStr,
-				}).Errorf("Cannot parse port: %s", err)
-				continue
-			}
-			blacklist[uint16(port)] = struct{}{}
-		}
+	conf, errs := scans.ParseConf(args.Params, net.ParseIP("216.239.34.21"))
+	for err := range errs {
+		args.Log.Errorf("Error parsing config: %s", err)
 	}
-
 	for {
 		file := source.Next()
 		if file == nil {
@@ -42,7 +29,7 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 		args.Log.WithFields(logrus.Fields{
 			"files_read": filesRead,
 		}).Info("Reading files...")
-		err := parseFile(file, saver, args, srcIP, blacklist)
+		err := parseFile(file, saver, args, conf)
 		if err != nil {
 			args.Log.WithFields(logrus.Fields{
 				"file_path": file.Path(),
@@ -52,7 +39,7 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 	}
 }
 
-func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP net.IP, blacklist map[uint16]struct{}) error {
+func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, conf *scans.ScanConfig) error {
 	date, err := parseDate(file.Name())
 	if err != nil {
 		date = time.Now()
@@ -61,7 +48,15 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 			"current_date": date,
 		}).Error("Couldn't determine date. Using current date and time...")
 	}
-
+	if !conf.IsDateInRange(date) {
+		args.Log.WithFields(logrus.Fields{
+			"since":   conf.Since,
+			"until":   conf.Until,
+			"curDate": date,
+			"file":    file.Name(),
+		}).Error("Ignoring file because is outside the date interval")
+		return nil
+	}
 	reader, err := file.Open()
 	if err != nil {
 		return err
@@ -84,23 +79,24 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 		}
 		ip := net.ParseIP(line.IP)
 		for _, port := range line.Ports {
-			if _, ok := blacklist[port]; !ok {
-				if err = saver.Save(&models.PortScan{
-					TaskID:     args.Task.ID,
-					PortNumber: port,
-					SourceID:   args.Process.Source,
-					ScanIP:     srcIP,
-					IP:         ip,
-					Date:       date,
-					Protocol:   protocols.GetTransport(port),
-				}); err != nil {
-					args.Log.WithFields(logrus.Fields{
-						"file_path": file.Path(),
-						"ip":        ip,
-						"port":      port,
-					}).Error("Couldn't save entry: %s", err)
-					continue
-				}
+			if !conf.IsPortAllowed(port) {
+				continue
+			}
+			if err = saver.Save(&models.PortScan{
+				TaskID:     args.Task.ID,
+				PortNumber: port,
+				SourceID:   args.Process.Source,
+				ScanIP:     conf.SourceIP,
+				IP:         ip,
+				Date:       date,
+				Protocol:   protocols.GetTransport(port),
+			}); err != nil {
+				args.Log.WithFields(logrus.Fields{
+					"file_path": file.Path(),
+					"ip":        ip,
+					"port":      port,
+				}).Error("Couldn't save entry: %s", err)
+				continue
 			}
 		}
 	}

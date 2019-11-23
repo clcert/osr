@@ -8,6 +8,7 @@ import (
 	"github.com/clcert/osr/sources"
 	"github.com/clcert/osr/tasks"
 	"github.com/clcert/osr/utils/grabber"
+	"github.com/clcert/osr/utils/scans"
 	"github.com/sirupsen/logrus"
 	"net"
 	"strconv"
@@ -17,11 +18,15 @@ import (
 
 func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) error {
 	srcAddr, err := source.GetID()
+	srcIPStr := strings.Split(srcAddr, ":")[0]
+	srcIP := net.ParseIP(srcIPStr)
 	if err != nil {
 		return err
 	}
-	srcIPStr := strings.Split(srcAddr, ":")[0]
-	srcIP := net.ParseIP(srcIPStr)
+	conf, errs := scans.ParseConf(args.Params, srcIP)
+	for err := range errs {
+		args.Log.Errorf("Error parsing config: %s", err)
+	}
 	filesRead := 0
 	for {
 		file := source.Next()
@@ -31,7 +36,7 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 		args.Log.WithFields(logrus.Fields{
 			"files_read": filesRead,
 		}).Info("Reading files...")
-		err := parseFile(file, saver, args, srcIP)
+		err := parseFile(file, saver, args, conf)
 		if err != nil {
 			args.Log.WithFields(logrus.Fields{
 				"file_path": file.Path(),
@@ -41,15 +46,37 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 	}
 }
 
-func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP net.IP) error {
+func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, conf *scans.ScanConfig) error {
 	date, err := grabber.ParseDate(DateFormat, file.Dir())
 	if err != nil {
 		date = time.Now()
 		args.Log.WithFields(logrus.Fields{
-			"file_name": file.Name(),
+			"file_name":    file.Name(),
 			"current_date": date,
 		}).Error("Couldn't determine date. Using current date and time...")
 	}
+	if !conf.IsDateInRange(date) {
+		args.Log.WithFields(logrus.Fields{
+			"since":   conf.Since,
+			"until":   conf.Until,
+			"curDate": date,
+			"file":    file.Name(),
+		}).Error("Ignoring file because is outside the date interval")
+		return nil
+	}
+	port, err := getPort(args, file.Name())
+	if err != nil {
+		file.Close()
+		return err
+	}
+	if !conf.IsPortAllowed(port) {
+		args.Log.WithFields(logrus.Fields{
+			"file_path": file.Path(),
+			"port":      port,
+		}).Info("Skipping file because port is on blacklist")
+		return nil
+	}
+	protocol := grabber.ParseProtocol(file.Path())
 	reader, err := file.Open()
 	if err != nil {
 		return err
@@ -59,21 +86,6 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 		"date":      date,
 	}).Info("File opened")
 	scanner := bufio.NewScanner(reader)
-	var port uint16
-	if portStr, ok := args.Params["port"]; ok {
-		port64, err := strconv.ParseUint(portStr, 10, 16)
-		if err == nil {
-			port = uint16(port64)
-		}
-	}
-	if port == 0 {
-		port, err = grabber.ParsePort(file.Name())
-		if err != nil {
-			file.Close()
-			return fmt.Errorf("couldn't get port number from filename: %s", err)
-		}
-	}
-	protocol := grabber.ParseProtocol(file.Path())
 	for scanner.Scan() {
 		ip := net.ParseIP(scanner.Text())
 		if ip == nil {
@@ -88,7 +100,7 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 			TaskID:     args.Task.ID,
 			PortNumber: port,
 			SourceID:   args.Process.Source,
-			ScanIP:     srcIP,
+			ScanIP:     conf.SourceIP,
 			IP:         ip,
 			Date:       date,
 			Protocol:   protocol,
@@ -103,3 +115,19 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 	return file.Close()
 }
 
+func getPort(args *tasks.Args, filename string) (port uint16, err error) {
+	if portStr, ok := args.Params["port"]; ok {
+		port64, err := strconv.ParseUint(portStr, 10, 16)
+		if err == nil {
+			port = uint16(port64)
+		}
+	}
+	if port == 0 {
+		port, err = grabber.ParsePort(filename)
+		if err != nil {
+			err = fmt.Errorf("couldn't get port number from filename: %s", err)
+			return
+		}
+	}
+	return
+}

@@ -9,6 +9,7 @@ import (
 	"github.com/clcert/osr/tasks"
 	"github.com/clcert/osr/utils/censys"
 	"github.com/clcert/osr/utils/protocols"
+	"github.com/clcert/osr/utils/scans"
 	"github.com/sirupsen/logrus"
 	"net"
 	"strconv"
@@ -17,7 +18,10 @@ import (
 )
 
 func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) error {
-	srcIP := net.ParseIP("216.239.34.21") // Censys.io IP. NOT SCANNING IP!
+	conf, errs := scans.ParseConf(args.Params, net.ParseIP("216.239.34.21"))
+	for err := range errs {
+		args.Log.Errorf("Error parsing config: %s", err)
+	}
 	filesRead := 0
 	for {
 		file := source.Next()
@@ -27,7 +31,7 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 		args.Log.WithFields(logrus.Fields{
 			"files_read": filesRead,
 		}).Info("Reading files...")
-		err := parseFile(file, saver, args, srcIP)
+		err := parseFile(file, saver, args, conf)
 		if err != nil {
 			args.Log.WithFields(logrus.Fields{
 				"file_path": file.Path(),
@@ -37,7 +41,7 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 	}
 }
 
-func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP net.IP) error {
+func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, conf *scans.ScanConfig) error {
 	port, protocol, err := parseMeta(file)
 	if err != nil {
 		args.Log.WithFields(logrus.Fields{
@@ -71,14 +75,22 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, srcIP n
 			continue
 		}
 		if err := entry.GetError(); err != nil {
+			// No log bc it would be a lot of messages
 			continue
 		}
-		scanDate := entry.GetTime(censys.DateFormat, time.Time{})
+		date := entry.GetTime(censys.DateFormat, time.Now())
+		if !conf.IsDateInRange(date) {
+			// No log bc it would be a lot of messages
+			continue
+		}
+		if !conf.IsPortAllowed(port) {
+			continue
+		}
 		portScan := &models.PortScan{
 			TaskID:     args.Task.ID,
 			SourceID:   args.Process.Source,
-			Date:       scanDate,
-			ScanIP:     srcIP,
+			Date:       date,
+			ScanIP:     conf.SourceIP,
 			IP:         entry.GetIP(),
 			PortNumber: port,
 			Protocol:   protocols.GetTransport(port),

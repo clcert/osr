@@ -9,13 +9,13 @@ import (
 	"github.com/clcert/osr/utils/censys"
 	"github.com/clcert/osr/utils/grabber"
 	"github.com/clcert/osr/utils/protocols"
+	"github.com/clcert/osr/utils/scans"
 	"github.com/sirupsen/logrus"
-	"net"
 	"strings"
 	"time"
 )
 
-func parseFile(file sources.Entry, args *tasks.Args, srcIP net.IP) error {
+func parseFile(file sources.Entry, args *tasks.Args, conf *scans.ScanConfig) error {
 	saver := args.Savers[0]
 	date, port, protocol, err := parseMeta(file)
 	if err != nil {
@@ -24,6 +24,22 @@ func parseFile(file sources.Entry, args *tasks.Args, srcIP net.IP) error {
 			"current_date": date,
 		}).Error("Couldn't determine date, port and protocol. Skipping file...")
 		return err
+	}
+	if !conf.IsDateInRange(date) {
+		args.Log.WithFields(logrus.Fields{
+			"since":   conf.Since,
+			"until":   conf.Until,
+			"curDate": date,
+			"file":    file.Name(),
+		}).Error("Ignoring file because is outside the date interval")
+		return nil
+	}
+	if !conf.IsPortAllowed(port) {
+		args.Log.WithFields(logrus.Fields{
+			"file_path": file.Path(),
+			"port":      port,
+		}).Info("Skipping file because port is on blacklist")
+		return nil
 	}
 	reader, err := file.Open()
 	if err != nil {
@@ -61,7 +77,7 @@ func parseFile(file sources.Entry, args *tasks.Args, srcIP net.IP) error {
 				TaskID:             args.Task.ID,
 				SourceID:           args.Process.Source,
 				Date:               entry.GetTime(censys.DateFormat, options.DefaultDate).Local(),
-				ScanIP:             srcIP,
+				ScanIP:             conf.SourceIP,
 				IP:                 entry.GetIP(),
 				PortNumber:         port,
 				IsAutosigned:       cert.IsAutosigned(),
@@ -88,7 +104,7 @@ func parseFile(file sources.Entry, args *tasks.Args, srcIP net.IP) error {
 			TaskID:     args.Task.ID,
 			SourceID:   args.Process.Source,
 			Date:       entry.GetTime(censys.DateFormat, options.DefaultDate),
-			ScanIP:     srcIP,
+			ScanIP:     conf.SourceIP,
 			IP:         entry.GetIP(),
 			PortNumber: port,
 			Protocol:   protocols.GetTransport(port),

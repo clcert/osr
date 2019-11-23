@@ -58,10 +58,6 @@ func CompareNextPair(csv1, csv2 *utils.HeadedCSV, saver savers.Saver, args *task
 		}
 		args.Log.Infof("Logging date %s and port %d", date, port)
 
-		if date.Year() == 2019 && date.Month() == 9 && date.Day() == 23 {
-			fmt.Printf("nooo");
-		}
-
 		joinChan := chan1.Join(chan2, IPCompareUntilPortAndDate(port, date, dateFormat))
 		countIPs := make(map[string]int)
 		for joinChan.IsOpen() {

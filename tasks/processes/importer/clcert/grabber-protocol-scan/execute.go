@@ -2,6 +2,7 @@ package grabber_protocol_scan
 
 import (
 	"github.com/clcert/osr/tasks"
+	"github.com/clcert/osr/utils/scans"
 	"github.com/sirupsen/logrus"
 	"net"
 	"strings"
@@ -18,6 +19,10 @@ func Execute(args *tasks.Args) (err error) {
 	}
 	srcIPStr := strings.Split(srcAddr, ":")[0]
 	srcIP := net.ParseIP(srcIPStr)
+	conf, errs := scans.ParseConf(args.Params, srcIP)
+	for err := range errs {
+		args.Log.Errorf("Error parsing config: %s", err)
+	}
 	filesRead := 0
 	for {
 		file := source.Next()
@@ -27,7 +32,7 @@ func Execute(args *tasks.Args) (err error) {
 		args.Log.WithFields(logrus.Fields{
 			"files_read": filesRead,
 		}).Info("Reading files...")
-		err := parseFile(file, args, srcIP)
+		err := parseFile(file, args, conf)
 		if err != nil {
 			args.Log.WithFields(logrus.Fields{
 				"file_path": file.Path(),

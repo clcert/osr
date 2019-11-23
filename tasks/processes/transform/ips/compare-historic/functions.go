@@ -2,12 +2,17 @@ package compare_historic
 
 import (
 	"fmt"
+	"github.com/clcert/osr/tasks/processes/transform/ips"
 	"github.com/clcert/osr/utils"
 	"strconv"
 	"time"
 )
 
-func GetPortAndDate(m map[string]string, dateFormat string) (port uint16, date time.Time, err error) {
+func GetPortDateAndIP(m map[string]string, dateFormat string) (port uint16, date time.Time, err error) {
+	if m == nil {
+		err = fmt.Errorf("map is nil")
+		return
+	}
 	dateStr, ok := m["date"]
 	if !ok {
 		err = fmt.Errorf("date key not found on row")
@@ -37,35 +42,27 @@ func GetPortAndDate(m map[string]string, dateFormat string) (port uint16, date t
 	return
 }
 
+//noinspection ALL
 func IPCompareUntilPortAndDate(port uint16, date time.Time, dateFormat string) utils.RowChanCompareFunc {
 	return func(map1, map2 map[string]string) (cmp int8, err error) {
-		if map1 == nil {
-			cmp = 1
-			return
-		} else if map2 == nil {
+		var port1, port2 uint16
+		var date1, date2 time.Time
+		port1, date1, err1 := GetPortDateAndIP(map1, dateFormat)
+		port2, date2, err2 := GetPortDateAndIP(map2, dateFormat)
+		if err1 != nil && err2 != nil {
+			err = fmt.Errorf("cannot get port and date of neither of both maps")
+		} else if err1 == nil && err2 != nil && date1.Equal(date) && port1 == port {
 			cmp = -1
-			return
-		}
-		port1, date1, err := GetPortAndDate(map1, dateFormat)
-		if err != nil {
-			return
-		}
-		port2, date2, err := GetPortAndDate(map2, dateFormat)
-		if err != nil {
-			return
-		}
-		if port1 != port && port2 != port { // None of them are of the port asked
-			err = fmt.Errorf("both ports are distinct to current port")
-		} else if !date1.Equal(date) && !date2.Equal(date) { // None of them are of the date asked
-			err = fmt.Errorf("both dates are distinct to current date")
+		} else if err1 != nil && err2 == nil && date2.Equal(date) && port2 == port {
+			cmp = 1
 		} else if port1 == port && port2 == port && date1.Equal(date) && date2.Equal(date) { //Both are equal
-			cmp = 0
+			cmp, err = ips.Compare(map1, map2)
 		} else if port1 == port && date1.Equal(date) {
 			cmp = -1
 		} else if port2 == port && date2.Equal(date) {
 			cmp = 1
 		} else {
-			err = fmt.Errorf("unknown situation")
+			err = fmt.Errorf("neither map has the port and the date desired")
 		}
 		return
 	}
@@ -80,15 +77,25 @@ func GetMinPortAndDate(chan1, chan2 *utils.RowChan) (port uint16, date time.Time
 	}
 	if chan1.IsOpen() {
 		elem1 := chan1.Peek()
-		port1, date1, err = GetPortAndDate(elem1, dateFormat)
+		port1, date1, err = GetPortDateAndIP(elem1, dateFormat)
 		if err != nil {
+			return
+		}
+		if !chan2.IsOpen() {
+			port = port1
+			date = date1
 			return
 		}
 	}
 	if chan2.IsOpen() {
 		elem2 := chan2.Peek()
-		port2, date2, err = GetPortAndDate(elem2, dateFormat)
+		port2, date2, err = GetPortDateAndIP(elem2, dateFormat)
 		if err != nil {
+			return
+		}
+		if !chan1.IsOpen() {
+			port = port2
+			date = date2
 			return
 		}
 	}
