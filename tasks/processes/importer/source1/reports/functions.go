@@ -7,6 +7,7 @@ import (
 	"github.com/clcert/osr/savers"
 	"github.com/clcert/osr/sources"
 	"github.com/clcert/osr/tasks"
+	"github.com/clcert/osr/utils/filters"
 	"github.com/sirupsen/logrus"
 	"io"
 	"net"
@@ -28,7 +29,7 @@ var scanToReport = map[string]func(string) (models.ReportTypeID, map[string]stri
 
 const timeLayout = "2006-01-02 15:04:05"
 
-func parseLine(line []string, args *tasks.Args) (*models.ReportEntry, error) {
+func parseLine(line []string, args *tasks.Args, conf *filters.DateConfig) (*models.ReportEntry, error) {
 	if len(line) < 6 {
 		return nil, fmt.Errorf("line badly formatted")
 	}
@@ -43,6 +44,9 @@ func parseLine(line []string, args *tasks.Args) (*models.ReportEntry, error) {
 	date, err := time.Parse(timeLayout, line[3])
 	if err != nil {
 		return nil, err
+	}
+	if !conf.IsDateInRange(date) {
+		return nil, fmt.Errorf("line is not in date range")
 	}
 	typeID, props, err := scanFunction(line[4])
 	if err != nil {
@@ -63,7 +67,7 @@ func parseLine(line []string, args *tasks.Args) (*models.ReportEntry, error) {
 	return entry, nil
 }
 
-func saveReport(entry sources.Entry, saver savers.Saver, args *tasks.Args) error {
+func saveReport(entry sources.Entry, saver savers.Saver, args *tasks.Args, conf *filters.DateConfig) error {
 	reader, err := entry.Open()
 	defer entry.Close()
 	if err != nil {
@@ -87,7 +91,7 @@ func saveReport(entry sources.Entry, saver savers.Saver, args *tasks.Args) error
 			// Problems with this line, we skip it.
 			return err
 		}
-		report, err := parseLine(line, args)
+		report, err := parseLine(line, args, conf)
 		if err != nil {
 			args.Log.
 				WithFields(logrus.Fields{

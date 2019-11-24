@@ -6,11 +6,12 @@ import (
 	"github.com/clcert/osr/sources"
 	"github.com/clcert/osr/tasks"
 	"github.com/clcert/osr/utils"
+	"github.com/clcert/osr/utils/filters"
 	"github.com/sirupsen/logrus"
 	"io"
 )
 
-func saveReport(entry sources.Entry, saver savers.Saver, args *tasks.Args) error {
+func saveReport(entry sources.Entry, saver savers.Saver, args *tasks.Args, conf *filters.DateConfig) error {
 	reader, err := entry.Open()
 	defer entry.Close()
 	if err != nil {
@@ -37,7 +38,7 @@ func saveReport(entry sources.Entry, saver savers.Saver, args *tasks.Args) error
 			// Problems with this line, we skip it.
 			continue
 		}
-		report, err := fileToReport.Parse(entry.Name(), line, args)
+		report, err := fileToReport.Parse(entry.Name(), line, args, conf)
 		if err != nil {
 			args.Log.
 				WithFields(logrus.Fields{

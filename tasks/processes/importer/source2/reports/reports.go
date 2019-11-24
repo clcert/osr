@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/clcert/osr/models"
 	"github.com/clcert/osr/tasks"
+	"github.com/clcert/osr/utils/filters"
 	"net"
 	"time"
 )
@@ -30,7 +31,7 @@ func (list ReportList) Exists(name string) bool {
 	return ok
 }
 
-func (list ReportList) Parse(filename string, entry map[string]string, args *tasks.Args) (*models.ReportEntry, error) {
+func (list ReportList) Parse(filename string, entry map[string]string, args *tasks.Args, conf *filters.DateConfig) (*models.ReportEntry, error) {
 	report, ok := list[filename]
 	if !ok {
 		return nil, fmt.Errorf("cannot get report type")
@@ -43,6 +44,9 @@ func (list ReportList) Parse(filename string, entry map[string]string, args *tas
 	date, err := time.Parse(timeLayout, timestampString)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse timestamp")
+	}
+	if !conf.IsDateInRange(date) {
+		return nil, fmt.Errorf("line is not in date range")
 	}
 	// get IP
 	ipString, ok := entry["ip"]

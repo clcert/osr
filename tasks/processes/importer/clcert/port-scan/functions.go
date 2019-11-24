@@ -8,7 +8,7 @@ import (
 	"github.com/clcert/osr/sources"
 	"github.com/clcert/osr/tasks"
 	"github.com/clcert/osr/utils/grabber"
-	"github.com/clcert/osr/utils/scans"
+	"github.com/clcert/osr/utils/filters"
 	"github.com/sirupsen/logrus"
 	"net"
 	"strconv"
@@ -23,7 +23,7 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 	if err != nil {
 		return err
 	}
-	conf, errs := scans.ParseConf(args.Params, srcIP)
+	conf, errs := filters.NewScanConfig(args.Params, srcIP)
 	for err := range errs {
 		args.Log.Errorf("Error parsing config: %s", err)
 	}
@@ -46,7 +46,7 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 	}
 }
 
-func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, conf *scans.ScanConfig) error {
+func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, conf *filters.ScanConfig) error {
 	date, err := grabber.ParseDate(DateFormat, file.Dir())
 	if err != nil {
 		date = time.Now()
@@ -69,7 +69,7 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, conf *s
 		file.Close()
 		return err
 	}
-	if !conf.IsPortAllowed(port) {
+	if !conf.IsNotInBlacklist(port) {
 		args.Log.WithFields(logrus.Fields{
 			"file_path": file.Path(),
 			"port":      port,

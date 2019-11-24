@@ -2,7 +2,7 @@ package grabber_protocol_scan
 
 import (
 	"github.com/clcert/osr/tasks"
-	"github.com/clcert/osr/utils/scans"
+	"github.com/clcert/osr/utils/filters"
 	"github.com/sirupsen/logrus"
 	"net"
 	"strings"
@@ -19,7 +19,7 @@ func Execute(args *tasks.Args) (err error) {
 	}
 	srcIPStr := strings.Split(srcAddr, ":")[0]
 	srcIP := net.ParseIP(srcIPStr)
-	conf, errs := scans.ParseConf(args.Params, srcIP)
+	conf, errs := filters.NewScanConfig(args.Params, srcIP)
 	for err := range errs {
 		args.Log.Errorf("Error parsing config: %s", err)
 	}

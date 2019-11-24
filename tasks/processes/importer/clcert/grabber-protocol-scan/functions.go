@@ -9,13 +9,13 @@ import (
 	"github.com/clcert/osr/utils/censys"
 	"github.com/clcert/osr/utils/grabber"
 	"github.com/clcert/osr/utils/protocols"
-	"github.com/clcert/osr/utils/scans"
+	"github.com/clcert/osr/utils/filters"
 	"github.com/sirupsen/logrus"
 	"strings"
 	"time"
 )
 
-func parseFile(file sources.Entry, args *tasks.Args, conf *scans.ScanConfig) error {
+func parseFile(file sources.Entry, args *tasks.Args, conf *filters.ScanConfig) error {
 	saver := args.Savers[0]
 	date, port, protocol, err := parseMeta(file)
 	if err != nil {
@@ -34,7 +34,7 @@ func parseFile(file sources.Entry, args *tasks.Args, conf *scans.ScanConfig) err
 		}).Error("Ignoring file because is outside the date interval")
 		return nil
 	}
-	if !conf.IsPortAllowed(port) {
+	if !conf.IsNotInBlacklist(port) {
 		args.Log.WithFields(logrus.Fields{
 			"file_path": file.Path(),
 			"port":      port,

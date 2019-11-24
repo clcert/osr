@@ -1,4 +1,4 @@
-package scans
+package filters
 
 import (
 	"fmt"
@@ -8,12 +8,24 @@ import (
 	"time"
 )
 
-func ParseConf(params map[string]string, ip net.IP) (conf *ScanConfig, errors []error) {
+func NewScanConfig(params map[string]string, ip net.IP) (conf *ScanConfig, errors []error) {
 	errors = make([]error, 0)
 	blacklist, err := parseBlacklist(params)
 	if err != nil {
 		errors = append(errors, err)
 	}
+	dateConfig, errs2 := NewDateConfig(params)
+	errors = append(errors, errs2...)
+	conf = &ScanConfig{
+		SourceIP:   ip, // Censys IP
+		Blacklist:  blacklist,
+		DateConfig: dateConfig,
+	}
+	return
+}
+
+func NewDateConfig(params map[string]string) (conf *DateConfig, errors []error) {
+	errors = make([]error, 0)
 	since, err := parseDate(params, "since")
 	if err != nil {
 		errors = append(errors, err)
@@ -22,12 +34,9 @@ func ParseConf(params map[string]string, ip net.IP) (conf *ScanConfig, errors []
 	if err != nil {
 		errors = append(errors, err)
 	}
-
-	conf = &ScanConfig{
-		SourceIP:  ip, // Censys IP
-		Blacklist: blacklist,
-		Since:     since,
-		Until:     until,
+	conf = &DateConfig{
+		Since: since,
+		Until: until,
 	}
 	return
 }

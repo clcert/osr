@@ -9,7 +9,7 @@ import (
 	"github.com/clcert/osr/tasks"
 	"github.com/clcert/osr/utils/censys"
 	"github.com/clcert/osr/utils/protocols"
-	"github.com/clcert/osr/utils/scans"
+	"github.com/clcert/osr/utils/filters"
 	"github.com/sirupsen/logrus"
 	"net"
 	"strconv"
@@ -18,7 +18,7 @@ import (
 )
 
 func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) error {
-	conf, errs := scans.ParseConf(args.Params, net.ParseIP("216.239.34.21"))
+	conf, errs := filters.NewScanConfig(args.Params, net.ParseIP("216.239.34.21"))
 	for err := range errs {
 		args.Log.Errorf("Error parsing config: %s", err)
 	}
@@ -41,7 +41,7 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 	}
 }
 
-func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, conf *scans.ScanConfig) error {
+func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, conf *filters.ScanConfig) error {
 	port, protocol, err := parseMeta(file)
 	if err != nil {
 		args.Log.WithFields(logrus.Fields{
@@ -83,7 +83,7 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, conf *s
 			// No log bc it would be a lot of messages
 			continue
 		}
-		if !conf.IsPortAllowed(port) {
+		if !conf.IsNotInBlacklist(port) {
 			continue
 		}
 		portScan := &models.PortScan{
