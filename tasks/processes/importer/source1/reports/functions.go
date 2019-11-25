@@ -29,7 +29,7 @@ var scanToReport = map[string]func(string) (models.ReportTypeID, map[string]stri
 
 const timeLayout = "2006-01-02 15:04:05"
 
-func parseLine(line []string, args *tasks.Args, conf *filters.DateConfig) (*models.ReportEntry, error) {
+func parseLine(line []string, args *tasks.Context, conf *filters.DateConfig) (*models.ReportEntry, error) {
 	if len(line) < 6 {
 		return nil, fmt.Errorf("line badly formatted")
 	}
@@ -67,7 +67,7 @@ func parseLine(line []string, args *tasks.Args, conf *filters.DateConfig) (*mode
 	return entry, nil
 }
 
-func saveReport(entry sources.Entry, saver savers.Saver, args *tasks.Args, conf *filters.DateConfig) error {
+func saveReport(entry sources.Entry, saver savers.Saver, args *tasks.Context, conf *filters.DateConfig) error {
 	reader, err := entry.Open()
 	defer entry.Close()
 	if err != nil {

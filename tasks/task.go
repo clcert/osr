@@ -92,11 +92,13 @@ func New(config *TaskConfig, params []string) (newTask *Task, err error) {
 func (task *Task) Execute() {
 	defer notify(task)
 	processes := task.GetCommands()
-	for _, process := range processes {
-		err := task.execute(process)
+	for index, process := range processes {
+		err := task.execute(process, index)
 		if err != nil {
 			logs.Log.WithFields(logrus.Fields{
 				"task": task.Name,
+				"index": index,
+				"process": process,
 			}).Errorf("Task failed: %s", err)
 			task.AddFailed(process, err)
 			if task.AbortOnError {
@@ -131,28 +133,29 @@ func (task *Task) Execute() {
 }
 
 // Export executes a specific process name in a task
-func (task *Task) execute(processName string) error {
-	config := task.GetConfig(processName)
+func (task *Task) execute(processName string, processIndex int) error {
+	config := task.GetConfig(processIndex)
 	if config == nil {
 		logs.Log.WithFields(logrus.Fields{
 			"command": processName,
+			"index": processIndex,
 		}).Error("Process not found on task")
-		return fmt.Errorf("process not found on task: %s", processName)
+		return fmt.Errorf("process not found on task: %s", processIndex)
 	}
 
 	process, ok := Registered[processName]
 	if !ok {
 		logs.Log.WithFields(logrus.Fields{
-			"command": processName,
+			"command": processIndex,
 		}).Error("Process not defined in system")
-		return fmt.Errorf("process not defined in system: %s", processName)
+		return fmt.Errorf("process not defined in system: %s", processIndex)
 	}
 	if process.Execute == nil {
 		return fmt.Errorf("proccess command is not defined")
 	}
 
 	// Add args
-	args, err := process.NewArgs(task)
+	args, err := process.NewArgs(task, processIndex)
 	if err != nil {
 		return err
 	}
@@ -172,7 +175,7 @@ func (task *Task) execute(processName string) error {
 		source, err := sourceConf.New(sourceName, args.Params)
 		if err != nil {
 			logs.Log.WithFields(logrus.Fields{
-				"command": processName,
+				"command": processIndex,
 			}).Error("source list error on index %d: %s", i, err)
 			return fmt.Errorf("source list error on index %d: %s", i, err)
 		}
@@ -200,14 +203,14 @@ func (task *Task) execute(processName string) error {
 		saver, err := saverConf.New(saverName, args.Params)
 		if err != nil {
 			logs.Log.WithFields(logrus.Fields{
-				"command": processName,
+				"command": processIndex,
 			}).Errorf("saver list error on index %d: %s", i, err)
 			return fmt.Errorf("saver list error on index %d: %s", i, err)
 		}
 		saversList = append(saversList, saver)
 		if err := saver.Start(); err != nil {
 			logs.Log.WithFields(logrus.Fields{
-				"command": processName,
+				"command": processIndex,
 			}).Errorf("Cannot start saver with index %d: %s", i, err)
 			return err
 		}
@@ -222,16 +225,16 @@ func (task *Task) execute(processName string) error {
 	}()
 
 	logs.Log.WithFields(logrus.Fields{
-		"command": processName,
+		"command": processIndex,
 	}).Info("executing process")
 	err = process.Execute(args)
 	if err == nil {
 		logs.Log.WithFields(logrus.Fields{
-			"command": processName,
+			"command": processIndex,
 		}).Info("process succeeded")
 	} else {
 		logs.Log.WithFields(logrus.Fields{
-			"command": processName,
+			"command": processIndex,
 		}).Error("process failed")
 	}
 	return err
@@ -258,11 +261,9 @@ func (task *Task) AddFailed(name string, err error) {
 }
 
 // GetConfig returns the configuration with an specific name in the task.
-func (task *Task) GetConfig(name string) *ProcessConfig {
-	for _, aConfig := range task.TaskConfig.Processes {
-		if aConfig.Command == name {
-			return aConfig
-		}
+func (task *Task) GetConfig(index int) *ProcessConfig {
+	if len(task.TaskConfig.Processes) < index {
+		return task.TaskConfig.Processes[index]
 	}
 	return nil
 }

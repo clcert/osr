@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func processSource(source sources.Source, saver savers.Saver, args *tasks.Args) error {
+func processSource(source sources.Source, saver savers.Saver, context *tasks.Context) error {
 	for {
 		var err error
 		entry := source.Next()
@@ -21,20 +21,20 @@ func processSource(source sources.Source, saver savers.Saver, args *tasks.Args) 
 		}
 		lowerPath := strings.ToLower(entry.Path())
 		if strings.Contains(lowerPath, "ultimos") || strings.Contains(lowerPath, "nuevos") {
-			err = saveNewDomains(entry, saver, args)
+			err = saveNewDomains(entry, saver, context)
 			saver.SendMessage(map[string]string{"close": entry.Path()})
 		} else if strings.Contains(strings.ToLower(entry.Path()), "eliminados") {
-			err = saveDeletedDomains(entry, saver, args)
+			err = saveDeletedDomains(entry, saver, context)
 			saver.SendMessage(map[string]string{"close": entry.Path()})
 		} else {
-			args.Log.
+			context.Log.
 				WithFields(logrus.Fields{
 					"file": entry.Path(),
 				}).
 				Info("skipping file...")
 		}
 		if err != nil {
-			args.Log.
+			context.Log.
 				WithFields(logrus.Fields{
 					"file": entry.Path(),
 					"err":  err,
@@ -44,7 +44,7 @@ func processSource(source sources.Source, saver savers.Saver, args *tasks.Args) 
 	}
 }
 
-func saveNewDomains(entry sources.Entry, saver savers.Saver, args *tasks.Args) error {
+func saveNewDomains(entry sources.Entry, saver savers.Saver, args *tasks.Context) error {
 	reader, err := entry.Open()
 	if err != nil {
 		return err
@@ -118,7 +118,7 @@ func saveNewDomains(entry sources.Entry, saver savers.Saver, args *tasks.Args) e
 	return nil
 }
 
-func saveDeletedDomains(entry sources.Entry, saver savers.Saver, args *tasks.Args) error {
+func saveDeletedDomains(entry sources.Entry, saver savers.Saver, args *tasks.Context) error {
 	reader, err := entry.Open()
 	if err != nil {
 		return err

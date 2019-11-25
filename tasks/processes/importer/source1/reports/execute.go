@@ -6,7 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func Execute(args *tasks.Args) error {
+func Execute(args *tasks.Context) error {
 	source := args.Sources[0]
 	saver := args.Savers[0]
 	conf, errs := filters.NewDateConfig(args.Params)

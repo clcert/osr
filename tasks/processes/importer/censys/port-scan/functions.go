@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) error {
+func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Context) error {
 	filesRead := 0
 	srcIPStr, ok := args.Params["src_ip"]
 	if !ok {
@@ -43,7 +43,7 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 	}
 }
 
-func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, conf *filters.ScanConfig) error {
+func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Context, conf *filters.ScanConfig) error {
 	date, err := parseDate(file.Name())
 	if err != nil {
 		date = time.Now()

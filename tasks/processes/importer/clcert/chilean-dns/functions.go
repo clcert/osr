@@ -22,7 +22,7 @@ type accessibleMap map[models.RRType]map[string]struct{}
 // The files are located in the folder "basepath" and have the following
 // structure as name: %s_port_%d.txt, where %s is the name of the scan and
 // %d is the port scanned.
-func GetAccessibleIPs(source sources.Source, args *tasks.Args) (accessibleMap, error) {
+func GetAccessibleIPs(source sources.Source, args *tasks.Context) (accessibleMap, error) {
 	var accessible = make(accessibleMap)
 	var nameType models.RRType
 	for {
@@ -76,7 +76,7 @@ func GetAccessibleIPs(source sources.Source, args *tasks.Args) (accessibleMap, e
 // This function reads a Mercury results file in JSON and
 // returns a list of DnsRRs representing each scan.
 // It ignores "error" scans.
-func getScanEntries(source sources.Source, saver savers.Saver, accessible accessibleMap, args *tasks.Args) error {
+func getScanEntries(source sources.Source, saver savers.Saver, accessible accessibleMap, args *tasks.Context) error {
 	privateNetworks, err := utils.GetPrivateNetworks()
 	if err != nil {
 		args.Log.Error("Error getting private networks")
@@ -98,7 +98,7 @@ func getScanEntries(source sources.Source, saver savers.Saver, accessible access
 	return nil
 }
 
-func readFile(file sources.Entry, saver savers.Saver, accessible accessibleMap, args *tasks.Args, privateNetworks utils.NetList) error {
+func readFile(file sources.Entry, saver savers.Saver, accessible accessibleMap, args *tasks.Context, privateNetworks utils.NetList) error {
 	args.Log.WithFields(logrus.Fields{
 		"name": file.Name(),
 	}).Info("Importing file")
@@ -200,7 +200,7 @@ func readFile(file sources.Entry, saver savers.Saver, accessible accessibleMap, 
 }
 
 // Imports a folder to the scan service.
-func parseScan(args *tasks.Args) error {
+func parseScan(args *tasks.Context) error {
 	mercurySource := args.Sources[0]
 	ipsSource := args.Sources[1]
 	args.Log.Info("Getting accessible IPs from scan...")
@@ -222,7 +222,7 @@ func parseScan(args *tasks.Args) error {
 }
 
 // Returns a list of IpAsnCountry, with the IPs of the last imports and the ASN and Country associated to them.
-func GetIpAsnCountries(args *tasks.Args) error {
+func GetIpAsnCountries(args *tasks.Context) error {
 	args.Log.Info("Getting ASN and Country information of recently scanned IPs...")
 
 	db, err := databases.GetPostgresWriter()

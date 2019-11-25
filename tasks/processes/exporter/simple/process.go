@@ -11,7 +11,7 @@ import (
 	"sync"
 )
 
-func process(entryChan chan sources.Entry, saver savers.Saver, wg *sync.WaitGroup, args *tasks.Args) {
+func process(entryChan chan sources.Entry, saver savers.Saver, wg *sync.WaitGroup, args *tasks.Context) {
 	defer wg.Done()
 	for file := range entryChan {
 		logs.Log.WithFields(logrus.Fields{

@@ -31,7 +31,7 @@ func (list ReportList) Exists(name string) bool {
 	return ok
 }
 
-func (list ReportList) Parse(filename string, entry map[string]string, args *tasks.Args, conf *filters.DateConfig) (*models.ReportEntry, error) {
+func (list ReportList) Parse(filename string, entry map[string]string, args *tasks.Context, conf *filters.DateConfig) (*models.ReportEntry, error) {
 	report, ok := list[filename]
 	if !ok {
 		return nil, fmt.Errorf("cannot get report type")

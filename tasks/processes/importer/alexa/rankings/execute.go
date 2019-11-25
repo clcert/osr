@@ -11,7 +11,7 @@ import (
 const rankingFilename = "top-1m.csv"
 
 // Imports chilean-domains information from Geolite2 Source
-func Execute(args *tasks.Args) error {
+func Execute(args *tasks.Context) error {
 	source := args.Sources[0]
 	saver := args.Savers[0]
 	// I expect only one file: the csv

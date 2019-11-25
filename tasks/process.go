@@ -30,14 +30,14 @@ type ProcessConfig struct {
 // Task importer have now a [provider]->[data] structure, but this
 // implementation doesn't demand it.
 type Process struct {
-	Name            string              // Readable name for the importer command
-	Command         string              // The name you write when you want to execute the command
-	Description     string              // A description for the importer routine
-	URL             string              // If exists, a URL related with the source of the data
-	DefaultSourceID models.DataSourceID // Provider ID. Allows to Providers model to get it or register it.
-	Execute         func(*Args) error   // An action to be executed when this command is called.
-	NumSources      int                 // Number of allowed sources on this task. If negative, it's unlimited.
-	NumSavers       int                 // Number of allowed savers on this task. If negative, it's unlimited.
+	Name            string               // Readable name for the importer command
+	Command         string               // The name you write when you want to execute the command
+	Description     string               // A description for the importer routine
+	URL             string               // If exists, a URL related with the source of the data
+	DefaultSourceID models.DataSourceID  // Provider ID. Allows to Providers model to get it or register it.
+	Execute         func(*Context) error // An action to be executed when this command is called.
+	NumSources      int                  // Number of allowed sources on this task. If negative, it's unlimited.
+	NumSavers       int                  // Number of allowed savers on this task. If negative, it's unlimited.
 }
 
 // Registers a process to the global dictionary.
@@ -47,18 +47,19 @@ func (processes Processes) Register(processList ...*Process) {
 	}
 }
 
-// Creates a new object of type Args, used in process execution.
+// Creates a new object of type Context, used in process execution.
 // It also creates a logger for the process and adds the task params to its
 // params list.
-func (process *Process) NewArgs(task *Task) (*Args, error) {
+func (process *Process) NewArgs(task *Task, index int) (*Context, error) {
 	log, err := logs.NewLog(fmt.Sprintf("%s_%s", task.GetSafeName(), process.GetSafeName()))
 	if err != nil {
 		return nil, err
 	}
 	// Adding log to task attachments for future notifications
 	task.AddAttachments(log)
-	args := &Args{
+	context := &Context{
 		Process: process,
+		Index:   index,
 		Sources: make([]sources.Source, 0),
 		Savers:  make([]savers.Saver, 0),
 		Params:  make(utils.Params, 0),
@@ -66,8 +67,8 @@ func (process *Process) NewArgs(task *Task) (*Args, error) {
 		Log:     log,
 	}
 	// Adding params of task
-	args.Params = args.Params.Join(task.Params)
-	return args, nil
+	context.Params = context.Params.Join(task.Params)
+	return context, nil
 }
 
 func (process *Process) GetSafeName() string {

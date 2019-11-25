@@ -11,7 +11,7 @@ import (
 	"io"
 )
 
-func ImportCategories(source sources.Source, saver savers.Saver, args *tasks.Args) error {
+func ImportCategories(source sources.Source, saver savers.Saver, args *tasks.Context) error {
 	file := source.Next()
 	if file == nil {
 		return fmt.Errorf("source empty")

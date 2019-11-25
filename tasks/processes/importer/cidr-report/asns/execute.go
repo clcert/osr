@@ -15,7 +15,7 @@ const lineRegex = `<a href=".*">(AS\d+)\s*<\/a>\s*(.*), ([A-Z]{2})`
 
 // Downloads the CIDR webpage and uploads its data to the
 // ASNs database.
-func Execute(args *tasks.Args) error {
+func Execute(args *tasks.Context) error {
 	source := args.Sources[0]
 	saver := args.Savers[0]
 	re := regexp.MustCompile(lineRegex)

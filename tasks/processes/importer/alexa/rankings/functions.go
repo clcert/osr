@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-func saveCSV(entry sources.Entry, saver savers.Saver, args *tasks.Args) error {
+func saveCSV(entry sources.Entry, saver savers.Saver, args *tasks.Context) error {
 	var tlds []string
 	if _, ok := args.Params["tlds"]; ok {
 		tlds = strings.Split(args.Params["tlds"], ",")

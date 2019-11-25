@@ -14,7 +14,7 @@ import (
 
 // worker this assigns a file to each worker jobs is used as queue containing all the files to be processed.
 // All the files processed are moved to "scanned" folder.
-func worker(id int, wg *sync.WaitGroup, jobs chan sources.Entry, saver savers.Saver, args *tasks.Args) error {
+func worker(id int, wg *sync.WaitGroup, jobs chan sources.Entry, saver savers.Saver, args *tasks.Context) error {
 	defer wg.Done()
 	for entry := range jobs {
 		packetsSeen := NewPacketDictionary(saver)

@@ -12,7 +12,7 @@ import (
 	"net"
 )
 
-func saveRIPE(entry sources.Entry, saver savers.Saver, args *tasks.Args, country *models.Country) error {
+func saveRIPE(entry sources.Entry, saver savers.Saver, args *tasks.Context, country *models.Country) error {
 	resources, err := parseRIPE(entry)
 	if err != nil {
 		args.Log.WithFields(logrus.Fields{

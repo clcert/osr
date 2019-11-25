@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func parseFile(file sources.Entry, args *tasks.Args, conf *filters.ScanConfig) error {
+func parseFile(file sources.Entry, args *tasks.Context, conf *filters.ScanConfig) error {
 	saver := args.Savers[0]
 	date, port, protocol, err := parseMeta(file)
 	if err != nil {

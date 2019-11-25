@@ -14,7 +14,7 @@ import (
 // It creates a channel of jobs containing the filenames.
 // It also uses a channel for writing to the db.
 // It returns an error if it fails to importer the data.
-func Execute(args *tasks.Args) error {
+func Execute(args *tasks.Context) error {
 	source := args.Sources[0]
 	saver := args.Savers[0]
 

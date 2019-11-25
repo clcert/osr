@@ -108,7 +108,7 @@ func Compare(map1, map2 map[string]string) (cmp int8, err error) {
 	return
 }
 
-func GetSubnets(csv *utils.HeadedCSV, args *tasks.Args) (ips.SubnetList, error) {
+func GetSubnets(csv *utils.HeadedCSV, args *tasks.Context) (ips.SubnetList, error) {
 	list := make(ips.SubnetList, 0)
 	for {
 		line, err := csv.NextRow()

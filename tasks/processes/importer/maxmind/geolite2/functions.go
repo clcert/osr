@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-func parseSource(source sources.Source, saver savers.Saver, args *tasks.Args) {
+func parseSource(source sources.Source, saver savers.Saver, args *tasks.Context) {
 	id, err := source.GetID()
 	if err != nil {
 		id = "unknown"
@@ -118,7 +118,7 @@ func parseSource(source sources.Source, saver savers.Saver, args *tasks.Args) {
 	}).Info("Done parsing this source")
 }
 
-func saveCountries(entry sources.Entry, saver savers.Saver, args *tasks.Args) error {
+func saveCountries(entry sources.Entry, saver savers.Saver, args *tasks.Context) error {
 	reader, err := entry.Open()
 	if err != nil {
 		return err
@@ -169,7 +169,7 @@ func saveCountries(entry sources.Entry, saver savers.Saver, args *tasks.Args) er
 	return nil
 }
 
-func saveCountrySubnets(entry sources.Entry, saver savers.Saver, args *tasks.Args) error {
+func saveCountrySubnets(entry sources.Entry, saver savers.Saver, args *tasks.Context) error {
 	reader, err := entry.Open()
 	if err != nil {
 		return err
@@ -221,7 +221,7 @@ func saveCountrySubnets(entry sources.Entry, saver savers.Saver, args *tasks.Arg
 	return nil
 }
 
-func saveASNSubnets(entry sources.Entry, saver savers.Saver, args *tasks.Args) error {
+func saveASNSubnets(entry sources.Entry, saver savers.Saver, args *tasks.Context) error {
 	reader, err := entry.Open()
 	if err != nil {
 		return err

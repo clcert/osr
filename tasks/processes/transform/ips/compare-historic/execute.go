@@ -12,7 +12,7 @@ import (
 
 const dateFormat = "2006-01-02 15:04:05-07"
 
-func Execute(args *tasks.Args) error {
+func Execute(args *tasks.Context) error {
 	source := args.Sources[0]
 	saver := args.Savers[0]
 	pairsCompared := 0
@@ -42,7 +42,7 @@ func Execute(args *tasks.Args) error {
 }
 
 
-func CompareNextPair(csv1, csv2 *utils.HeadedCSV, saver savers.Saver, args *tasks.Args) error {
+func CompareNextPair(csv1, csv2 *utils.HeadedCSV, saver savers.Saver, args *tasks.Context) error {
 	if !csv1.HasHeader("ip") || !csv2.HasHeader("date") || !csv2.HasHeader("port_number") {
 		return fmt.Errorf("file must have ip, port number and date headers")
 	}

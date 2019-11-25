@@ -24,7 +24,7 @@ type PacketDict struct {
 	packets     map[string][]string // List of packets
 	arrivalTime int64               // Time of arrival of packets
 	importer    savers.Saver        // Channel to DB
-	Args        *tasks.Args         // Related Task struct
+	Args        *tasks.Context      // Related Task struct
 }
 
 // Reset sets to default values the fields of the struct except for the csvWriter and the channel
@@ -46,8 +46,8 @@ func NewPacketDictionary(dbImporter savers.Saver) *PacketDict {
 	return packetsSeen
 }
 
-//SetArgs sets the *tasks.Args
-func (packetsSeen *PacketDict) SetArgs(args *tasks.Args) {
+//SetArgs sets the *tasks.Context
+func (packetsSeen *PacketDict) SetArgs(args *tasks.Context) {
 	packetsSeen.Args = args
 }
 

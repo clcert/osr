@@ -11,7 +11,7 @@ import (
 	"io"
 )
 
-func saveReport(entry sources.Entry, saver savers.Saver, args *tasks.Args, conf *filters.DateConfig) error {
+func saveReport(entry sources.Entry, saver savers.Saver, args *tasks.Context, conf *filters.DateConfig) error {
 	reader, err := entry.Open()
 	defer entry.Close()
 	if err != nil {

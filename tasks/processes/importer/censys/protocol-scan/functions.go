@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) error {
+func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Context) error {
 	srcIPStr, ok := args.Params["src_ip"]
 	if !ok {
 		srcIPStr = "216.239.34.21" // Censys IP
@@ -45,7 +45,7 @@ func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) err
 	}
 }
 
-func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, conf *filters.ScanConfig) error {
+func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Context, conf *filters.ScanConfig) error {
 	port, protocol, err := parseMeta(file)
 	if err != nil {
 		args.Log.WithFields(logrus.Fields{

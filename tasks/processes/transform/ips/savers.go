@@ -8,7 +8,7 @@ import (
 	"net"
 )
 
-func SaveIPs(saver savers.Saver, rows *utils.RowChan, id string, args *tasks.Args) {
+func SaveIPs(saver savers.Saver, rows *utils.RowChan, id string, args *tasks.Context) {
 	for rows.IsOpen() {
 		row := rows.Get()
 		ipStr, ok := row["ip"];
@@ -29,7 +29,7 @@ func SaveIPs(saver savers.Saver, rows *utils.RowChan, id string, args *tasks.Arg
 	}
 }
 
-func SaveSubnets(saver savers.Saver, subnets ips.SubnetList, id string, args *tasks.Args) {
+func SaveSubnets(saver savers.Saver, subnets ips.SubnetList, id string, args *tasks.Context) {
 	for _, subnet := range subnets {
 		err := saver.Save(savers.Savable{
 			Object: struct{Subnet *net.IPNet `structs:",string"`}{subnet},
