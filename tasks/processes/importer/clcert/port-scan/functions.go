@@ -17,12 +17,16 @@ import (
 )
 
 func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) error {
-	srcAddr, err := source.GetID()
-	srcIPStr := strings.Split(srcAddr, ":")[0]
-	srcIP := net.ParseIP(srcIPStr)
-	if err != nil {
-		return err
+	var srcIPStr string
+	var ok bool
+	if srcIPStr, ok = args.Params["src_ip"]; !ok {
+		srcAddr, err := source.GetID()
+		if err != nil {
+			return err
+		}
+		srcIPStr = strings.Split(srcAddr, ":")[0]
 	}
+	srcIP := net.ParseIP(srcIPStr)
 	conf, errs := filters.NewScanConfig(args.Params, srcIP)
 	for err := range errs {
 		args.Log.Errorf("Error parsing config: %s", err)
@@ -97,9 +101,9 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, conf *f
 			continue
 		}
 		if err = saver.Save(&models.PortScan{
-			TaskID:     args.Task.ID,
+			TaskID:     args.GetTaskID(),
 			PortNumber: port,
-			SourceID:   args.Process.Source,
+			SourceID:   args.GetSourceID(),
 			ScanIP:     conf.SourceIP,
 			IP:         ip,
 			Date:       date,

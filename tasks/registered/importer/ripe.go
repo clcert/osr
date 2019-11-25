@@ -9,14 +9,14 @@ import (
 func init() {
 	tasks.Registered.Register(
 		&tasks.Process{
-			Name:        "RIPE List of chilean Subnets",
-			Command:     "import/ripe-chilean-ips",
-			Description: "Updates information about ASNS and its Subnets from RIPE",
-			URL:         "https://stat.ripe.net/data/country-resource-list/data.json?resource=cl",
-			Source:      models.RIPE,
-			Execute:     chilean_subnets.Execute,
-			NumSources:  1,
-			NumSavers:   1,
+			Name:            "RIPE List of chilean Subnets",
+			Command:         "import/ripe-chilean-ips",
+			Description:     "Updates information about ASNS and its Subnets from RIPE",
+			URL:             "https://stat.ripe.net/data/country-resource-list/data.json?resource=cl",
+			DefaultSourceID: models.RIPE,
+			Execute:         chilean_subnets.Execute,
+			NumSources:      1,
+			NumSavers:       1,
 		},
 	)
 }

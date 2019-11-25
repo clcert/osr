@@ -74,8 +74,8 @@ func parseFile(file sources.Entry, args *tasks.Args, conf *filters.ScanConfig) e
 		cert, err := entry.GetCertificate()
 		if err == nil {
 			if err = saver.Save(&models.Certificate{
-				TaskID:             args.Task.ID,
-				SourceID:           args.Process.Source,
+				TaskID:             args.GetTaskID(),
+				SourceID:           args.GetSourceID(),
 				Date:               entry.GetTime(censys.DateFormat, options.DefaultDate).Local(),
 				ScanIP:             conf.SourceIP,
 				IP:                 entry.GetIP(),
@@ -101,8 +101,8 @@ func parseFile(file sources.Entry, args *tasks.Args, conf *filters.ScanConfig) e
 			continue // File contains only certificates
 		}
 		portScan := &models.PortScan{
-			TaskID:     args.Task.ID,
-			SourceID:   args.Process.Source,
+			TaskID:     args.GetTaskID(),
+			SourceID:   args.GetSourceID(),
 			Date:       entry.GetTime(censys.DateFormat, options.DefaultDate),
 			ScanIP:     conf.SourceIP,
 			IP:         entry.GetIP(),

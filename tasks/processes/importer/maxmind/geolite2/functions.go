@@ -207,8 +207,8 @@ func saveCountrySubnets(entry sources.Entry, saver savers.Saver, args *tasks.Arg
 				return err
 			}
 			if err := saver.Save(&models.SubnetCountry{
-				TaskID:           args.Task.ID,
-				SourceID:         args.Process.Source,
+				TaskID:           args.GetTaskID(),
+				SourceID:         args.GetSourceID(),
 				Subnet:           subnet,
 				CountryGeonameId: geoid,
 			}); err != nil {
@@ -258,8 +258,8 @@ func saveASNSubnets(entry sources.Entry, saver savers.Saver, args *tasks.Args) e
 			return err
 		}
 		if err := saver.Save(&models.SubnetASN{
-			TaskID:   args.Task.ID,
-			SourceID: args.Process.Source,
+			TaskID:   args.GetTaskID(),
+			SourceID: args.GetSourceID(),
 			Subnet:   subnet,
 			AsnID:    asn,
 		}); err != nil {

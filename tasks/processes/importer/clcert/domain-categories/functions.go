@@ -51,8 +51,8 @@ func ImportCategories(source sources.Source, saver savers.Saver, args *tasks.Arg
 		}
 		subdomain, domain, tld, category := line[0], line[1], line[2], line[3]
 		err = saver.Save(&models.DomainToCategory{
-			TaskID:             args.Task.ID,
-			SourceID:           args.Process.Source,
+			TaskID:             args.GetTaskID(),
+			SourceID:           args.GetSourceID(),
 			DomainSubdomain:    subdomain,
 			DomainName:         domain,
 			DomainTLD:          tld,

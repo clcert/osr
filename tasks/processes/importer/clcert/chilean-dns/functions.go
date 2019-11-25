@@ -144,8 +144,8 @@ func readFile(file sources.Entry, saver savers.Saver, accessible accessibleMap, 
 		derivedType := GetDerivedType(file.Name())
 		for i, rr := range result.RRs {
 			dnsRR := &models.DnsRR{
-				TaskID:          args.Task.ID,
-				SourceID:        args.Process.Source,
+				TaskID:          args.GetTaskID(),
+				SourceID:        args.GetSourceID(),
 				Date:            result.Timestamp,
 				DomainSubdomain: subdomain,
 				DomainName:      domain,
@@ -230,7 +230,7 @@ func GetIpAsnCountries(args *tasks.Args) error {
 		return err
 	}
 	defer db.Close()
-	distinctIPs := db.Model(&models.DnsRR{}).ColumnExpr("distinct dns_rr.task_id, dns_rr.ip_value as ip").Where("task_id = ?", args.Task.ID)
+	distinctIPs := db.Model(&models.DnsRR{}).ColumnExpr("distinct dns_rr.task_id, dns_rr.ip_value as ip").Where("task_id = ?", args.GetTaskID())
 
 	taskIDASN, err := models.LatestModelTaskID(db, &models.SubnetASN{})
 	if err != nil {
@@ -246,14 +246,14 @@ func GetIpAsnCountries(args *tasks.Args) error {
 		Column("subnet", "asn_id", "source_id").
 		Join("JOIN asns as asn").
 		JoinOn("subnet_asn.asn_id = asn.id").
-		JoinOn("subnet_asn.source_id = ?", args.Process.Source).
+		JoinOn("subnet_asn.source_id = ?", args.GetSourceID()).
 		JoinOn("subnet_asn.task_id = ?", taskIDASN)
 
 	joinSubnetCountry := db.Model(&models.SubnetCountry{}).
 		Column("subnet", "country_geoname_id").
 		Join("JOIN countries as country").
 		JoinOn("subnet_country.country_geoname_id = country.geoname_id").
-		JoinOn("subnet_country.source_id = ?", args.Process.Source).
+		JoinOn("subnet_country.source_id = ?", args.GetSourceID()).
 		JoinOn("subnet_country.task_id = ?", taskIDCountry)
 
 	ipAsnCountryList := make([]*models.IpAsnCountry, 0)

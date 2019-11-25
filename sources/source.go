@@ -21,10 +21,10 @@ import (
 
 // It defines a source config. It can define only one from [SFTP, HTTP, Script, ...]
 type Config struct {
-	SFTP   *SFTPConfig      // Config if type is sftp
-	HTTP   *HTTPConfig      // Config if type is http
-	Script *ScriptConfig    // Config if type is command
-	Query  *QueryListConfig // Config if type is query
+	SFTP     *SFTPConfig      // Config if type is sftp
+	HTTP     *HTTPConfig      // Config if type is http
+	Script   *ScriptConfig    // Config if type is command
+	Query    *QueryListConfig // Config if type is query
 }
 
 // Source defines a stream of entries, related to an import.

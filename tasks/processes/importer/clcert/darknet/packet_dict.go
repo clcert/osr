@@ -100,8 +100,8 @@ func (packetsSeen *PacketDict) toDBPacket() []*models.DarknetPacket {
 		cwr, _ := strconv.ParseBool(fmt.Sprintf("%s", tcppacket[15]))
 
 		pack := &models.DarknetPacket{
-			TaskID:     packetsSeen.Args.Task.ID,
-			SourceID:   packetsSeen.Args.Process.Source,
+			TaskID:     packetsSeen.Args.GetTaskID(),
+			SourceID:   packetsSeen.Args.GetSourceID(),
 			Count:      uint32(v),
 			Time:       time.Unix(arrivalTime, 0),
 			Ihl:        uint32(ihl),

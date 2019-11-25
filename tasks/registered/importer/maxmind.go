@@ -11,14 +11,14 @@ import (
 func init() {
 	tasks.Registered.Register(
 		&tasks.Process{
-			Name:        "Countries and Subnet-to-ASN and Subnet-to-Country information",
-			Command:     "import/maxmind-geolite2",
-			Description: "Updates information about Countries and their Subnets, and ASNS and their ips.",
-			URL:         "https://dev.maxmind.com/geoip/geoip2/maxmind/",
-			Execute:     geolite2.Execute,
-			Source:      models.MaxMind,
-			NumSources:  2,
-			NumSavers:   1,
+			Name:            "Countries and Subnet-to-ASN and Subnet-to-Country information",
+			Command:         "import/maxmind-geolite2",
+			Description:     "Updates information about Countries and their Subnets, and ASNS and their ips.",
+			URL:             "https://dev.maxmind.com/geoip/geoip2/maxmind/",
+			Execute:         geolite2.Execute,
+			DefaultSourceID: models.MaxMind,
+			NumSources:      2,
+			NumSavers:       1,
 		},
 	)
 }

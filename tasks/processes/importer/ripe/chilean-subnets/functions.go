@@ -37,8 +37,8 @@ func saveRIPE(entry sources.Entry, saver savers.Saver, args *tasks.Args, country
 			}).Error("error parsing this subnet")
 		}
 		if err := saver.Save(&models.SubnetCountry{
-			TaskID:           args.Task.ID,
-			SourceID:         args.Process.Source,
+			TaskID:           args.GetTaskID(),
+			SourceID:         args.GetSourceID(),
 			Subnet:           subnet,
 			CountryGeonameId: country.GeonameId,
 		}); err != nil {

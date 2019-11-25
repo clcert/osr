@@ -9,14 +9,14 @@ import (
 func init() {
 	tasks.Registered.Register(
 		&tasks.Process{
-			Name:        "Source#2 Reports",
-			Command:     "import/source2-reports",
-			Description: "Imports reports from source#2",
-			URL:         "",
-			Source:      models.Source2,
-			Execute:     reports.Execute,
-			NumSources:  1,
-			NumSavers:   1,
+			Name:            "Source#2 Reports",
+			Command:         "import/source2-reports",
+			Description:     "Imports reports from source#2",
+			URL:             "",
+			DefaultSourceID: models.Source2,
+			Execute:         reports.Execute,
+			NumSources:      1,
+			NumSavers:       1,
 		},
 	)
 }

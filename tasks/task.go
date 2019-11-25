@@ -18,13 +18,13 @@ import (
 
 // Defines a complete file with one or more process, savers and exports.
 type TaskConfig struct {
-	Name         string           // Name of the task
-	Description  string           // Description of the task
-	AbortOnError bool             // If true, task aborts if a process throws an error
-	Incognito    bool             // If true, task is not registered and taskID is assigned to 0
-	Parallel     bool             // Tasks are executed in parallel (?)
-	Params       utils.Params     // A list of global parameters
-	Processes    []*ProcessConfig // A list of config for processes.
+	Name         string              // Name of the task
+	Description  string              // Description of the task
+	AbortOnError bool                // If true, task aborts if a process throws an error
+	Incognito    bool                // If true, task is not registered and taskID is assigned to 0
+	Parallel     bool                // Tasks are executed in parallel (?)
+	Params       utils.Params        // A list of global parameters
+	Processes    []*ProcessConfig    // A list of config for processes.
 }
 
 // A task defines the state of execution of a TaskConfig. It contains the stats of the execution.
@@ -82,7 +82,7 @@ func New(config *TaskConfig, params []string) (newTask *Task, err error) {
 		CmdParams:   cmdParams,
 	}
 	logs.Log.WithFields(logrus.Fields{
-		"importer": newTask.TaskSession.ID,
+		"importer":  newTask.TaskSession.ID,
 		"incognito": config.Incognito,
 	}).Info("Created new task session!")
 	return

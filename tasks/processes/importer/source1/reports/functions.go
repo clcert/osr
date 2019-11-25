@@ -57,8 +57,8 @@ func parseLine(line []string, args *tasks.Args, conf *filters.DateConfig) (*mode
 		props[""] = ""
 	}
 	entry := &models.ReportEntry{
-		SourceID:     args.Process.Source,
-		TaskID:       args.Task.ID,
+		SourceID:     args.GetSourceID(),
+		TaskID:       args.GetTaskID(),
 		ReportTypeID: typeID,
 		IP:           ip,
 		Date:         date,

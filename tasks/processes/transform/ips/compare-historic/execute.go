@@ -78,7 +78,7 @@ func CompareNextPair(csv1, csv2 *utils.HeadedCSV, saver savers.Saver, args *task
 			Object: line,
 			Meta: map[string]string{
 				"outID": fmt.Sprintf(
-					"compare_%s_%s",
+					"compare_%s_%s.csv",
 					csv1Name,
 					csv2Name),
 			},

@@ -10,26 +10,26 @@ import (
 func init() {
 	tasks.Registered.Register(
 		&tasks.Process{
-			Name:        "Censys Port Scan",
-			Command:     "import/censys-port-scan",
-			Description: "Imports port scans made by Censys.",
-			URL:         "",
-			Source:      models.Censys,
-			Execute:     port_scan.Execute,
-			NumSources:  1,
-			NumSavers:   1,
+			Name:            "Censys Port Scan",
+			Command:         "import/censys-port-scan",
+			Description:     "Imports port scans made by Censys.",
+			URL:             "",
+			DefaultSourceID: models.Censys,
+			Execute:         port_scan.Execute,
+			NumSources:      1,
+			NumSavers:       1,
 		},
 	)
 	tasks.Registered.Register(
 		&tasks.Process{
-			Name:        "Censys Protocol Scan",
-			Command:     "import/censys-protocol-scan",
-			Description: "Imports protocol scans made by Censys.",
-			URL:         "",
-			Source:      models.Censys,
-			Execute:     protocol_scan.Execute,
-			NumSources:  1,
-			NumSavers:   1,
+			Name:            "Censys Protocol Scan",
+			Command:         "import/censys-protocol-scan",
+			Description:     "Imports protocol scans made by Censys.",
+			URL:             "",
+			DefaultSourceID: models.Censys,
+			Execute:         protocol_scan.Execute,
+			NumSources:      1,
+			NumSavers:       1,
 		},
 	)
 }

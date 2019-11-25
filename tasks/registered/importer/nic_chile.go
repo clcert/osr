@@ -9,14 +9,14 @@ import (
 func init() {
 	tasks.Registered.Register(
 		&tasks.Process{
-			Name:        "NIC Chile: New and Deleted Domains",
-			Command:     "import/nic-chile-domains",
-			Description: "Imports information about new domains",
-			URL:         "https://nic.cl/registry/Ultimos.do?t=1w&f=csv",
-			Source:      models.NICChile,
-			Execute:     domains.Execute,
-			NumSources:  tasks.InfiniteSources,
-			NumSavers:   1,
+			Name:            "NIC Chile: New and Deleted Domains",
+			Command:         "import/nic-chile-domains",
+			Description:     "Imports information about new domains",
+			URL:             "https://nic.cl/registry/Ultimos.do?t=1w&f=csv",
+			DefaultSourceID: models.NICChile,
+			Execute:         domains.Execute,
+			NumSources:      tasks.InfiniteSources,
+			NumSavers:       1,
 		},
 	)
 }

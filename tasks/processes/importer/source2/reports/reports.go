@@ -59,10 +59,10 @@ func (list ReportList) Parse(filename string, entry map[string]string, args *tas
 	report.getExtra(entry)
 	return &models.ReportEntry{
 		ReportTypeID: report.Type,
-		SourceID:     args.Process.Source,
+		SourceID:     args.GetSourceID(),
 		Date:         date,
 		IP:           ip,
-		TaskID:       args.Task.ID,
+		TaskID:       args.GetTaskID(),
 		Properties:   entry,
 	}, nil
 }

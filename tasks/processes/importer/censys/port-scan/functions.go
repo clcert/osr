@@ -17,7 +17,11 @@ import (
 
 func parseFiles(source sources.Source, saver savers.Saver, args *tasks.Args) error {
 	filesRead := 0
-	conf, errs := filters.NewScanConfig(args.Params, net.ParseIP("216.239.34.21"))
+	srcIPStr, ok := args.Params["src_ip"]
+	if !ok {
+		srcIPStr = "216.239.34.21" // Censys IP
+	}
+	conf, errs := filters.NewScanConfig(args.Params, net.ParseIP(srcIPStr))
 	for err := range errs {
 		args.Log.Errorf("Error parsing config: %s", err)
 	}
@@ -83,9 +87,9 @@ func parseFile(file sources.Entry, saver savers.Saver, args *tasks.Args, conf *f
 				continue
 			}
 			if err = saver.Save(&models.PortScan{
-				TaskID:     args.Task.ID,
+				TaskID:     args.GetTaskID(),
 				PortNumber: port,
-				SourceID:   args.Process.Source,
+				SourceID:   args.GetSourceID(),
 				ScanIP:     conf.SourceIP,
 				IP:         ip,
 				Date:       date,

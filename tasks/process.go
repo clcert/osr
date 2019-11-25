@@ -19,24 +19,25 @@ const InfiniteSources = -1
 
 // ProcessConfig defines the configuration specific for a process
 type ProcessConfig struct {
-	Command string           // Name of the command
-	Sources []sources.Config // List of sources related to the command
-	Savers  []savers.Config  // List of savers related to the command
-	Params  utils.Params     // List of specific params. They override the params of the global file.
+	Command  string              // Name of the command
+	SourceID models.DataSourceID // If set, overrides task source ID
+	Sources  []sources.Config    // List of sources related to the command
+	Savers   []savers.Config     // List of savers related to the command
+	Params   utils.Params        // List of specific params. They override the params of the global file.
 }
 
 // Process defines completely a Task.
 // Task importer have now a [provider]->[data] structure, but this
 // implementation doesn't demand it.
 type Process struct {
-	Name        string              // Readable name for the importer command
-	Command     string              // The name you write when you want to execute the command
-	Description string              // A description for the importer routine
-	URL         string              // If exists, a URL related with the source of the data
-	Source      models.DataSourceID // Provider ID. prepareFTP Providers model to get it or register it.
-	Execute     func(*Args) error   // An action to be executed when this command is called.
-	NumSources  int                 // Number of allowed sources on this task. If negative, it's unlimited.
-	NumSavers   int                 // Number of allowed savers on this task. If negative, it's unlimited.
+	Name            string              // Readable name for the importer command
+	Command         string              // The name you write when you want to execute the command
+	Description     string              // A description for the importer routine
+	URL             string              // If exists, a URL related with the source of the data
+	DefaultSourceID models.DataSourceID // Provider ID. Allows to Providers model to get it or register it.
+	Execute         func(*Args) error   // An action to be executed when this command is called.
+	NumSources      int                 // Number of allowed sources on this task. If negative, it's unlimited.
+	NumSavers       int                 // Number of allowed savers on this task. If negative, it's unlimited.
 }
 
 // Registers a process to the global dictionary.
@@ -61,7 +62,7 @@ func (process *Process) NewArgs(task *Task) (*Args, error) {
 		Sources: make([]sources.Source, 0),
 		Savers:  make([]savers.Saver, 0),
 		Params:  make(utils.Params, 0),
-		Task:    task.TaskSession,
+		Task:    task,
 		Log:     log,
 	}
 	// Adding params of task

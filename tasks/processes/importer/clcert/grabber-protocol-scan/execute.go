@@ -13,11 +13,15 @@ import (
 // []struct -> error
 func Execute(args *tasks.Args) (err error) {
 	source := args.Sources[0]
-	srcAddr, err := source.GetID()
-	if err != nil {
-		return err
+	var srcIPStr string
+	var ok bool
+	if srcIPStr, ok = args.Params["src_ip"]; !ok {
+		srcAddr, err := source.GetID()
+		if err != nil {
+			return err
+		}
+		srcIPStr = strings.Split(srcAddr, ":")[0]
 	}
-	srcIPStr := strings.Split(srcAddr, ":")[0]
 	srcIP := net.ParseIP(srcIPStr)
 	conf, errs := filters.NewScanConfig(args.Params, srcIP)
 	for err := range errs {

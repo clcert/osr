@@ -94,8 +94,8 @@ func saveNewDomains(entry sources.Entry, saver savers.Saver, args *tasks.Args) e
 			continue
 		}
 		aDomain := &models.Domain{
-			TaskID:           args.Task.ID,
-			SourceID:         args.Process.Source,
+			TaskID:           args.GetTaskID(),
+			SourceID:         args.GetSourceID(),
 			Subdomain:        "",
 			Name:             domain,
 			TLD:              tld,
@@ -148,8 +148,8 @@ func saveDeletedDomains(entry sources.Entry, saver savers.Saver, args *tasks.Arg
 			return err
 		}
 		aDomain := &models.Domain{
-			TaskID:       args.Task.ID,
-			SourceID:     args.Process.Source,
+			TaskID:       args.GetTaskID(),
+			SourceID:     args.GetSourceID(),
 			Subdomain:    "",
 			Name:         domain,
 			TLD:          tld,

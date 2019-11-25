@@ -47,8 +47,8 @@ func saveCSV(entry sources.Entry, saver savers.Saver, args *tasks.Args) error {
 		for _, allowedTLD := range tlds {
 			if strings.TrimSpace(tld) == allowedTLD {
 				err := saver.Save(&models.DomainRanking{
-					TaskID:          args.Task.ID,
-					SourceID:        args.Process.Source,
+					TaskID:          args.GetTaskID(),
+					SourceID:        args.GetSourceID(),
 					Ranking:         int64(rank),
 					DomainSubdomain: subdomain,
 					DomainName:      name,

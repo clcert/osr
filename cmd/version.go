@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const VERSION = "3.4.0"
+const VERSION = "3.5.0"
 
 // CreateDB creates all the models databases.
 var VersionCmd = &cobra.Command{
@@ -14,6 +14,5 @@ var VersionCmd = &cobra.Command{
 	Long:  "Checks OSR version",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("OSR version %s\n", VERSION)
-
 	},
 }

@@ -11,10 +11,10 @@ import (
 // Args defines a set of args
 type Args struct {
 	Process *Process         // A reference to the Process struct which called the Task Method.
+	Task    *Task            // A reference to the task context.
 	Sources []sources.Source // A list of sources with the data to import.
 	Savers  []savers.Saver   // A list of savers used to store the processed data
 	Params  utils.Params     // A list of args
-	Task    *models.Task     // A importer structure associated to this batch importer event.
 	Log     *logs.OSRLog     // Log used in the process(es) execution
 }
 
@@ -30,4 +30,16 @@ func (args *Args) AddSavers(saversList []savers.Saver) {
 	for _, v := range saversList {
 		args.Savers = append(args.Savers, v)
 	}
+}
+
+func (args *Args) GetSourceID() models.DataSourceID {
+	setSourceID := args.Task.GetConfig(args.Process.Command).SourceID
+	if  setSourceID > 0 {
+		return setSourceID
+	}
+	return args.Process.DefaultSourceID
+}
+
+func (args *Args) GetTaskID() int {
+	return args.Task.TaskSession.ID
 }
