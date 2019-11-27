@@ -2,7 +2,8 @@ package grabber
 
 import (
 	"crypto/x509"
-	"github.com/clcert/osr/utils/protocols"
+	"encoding/pem"
+	"github.com/clcert/osr/models"
 	"strconv"
 	"strings"
 	"time"
@@ -43,8 +44,52 @@ type CertMeta struct {
 	CiphersSuites  map[string]string `json:"ciphersSuites"` // Cipher suites available
 }
 
-func (m *CertMeta) IsAutosigned() bool {
-	return len(m.Chain) < 2
+func (m *CertMeta) CheckValid(now time.Time) (models.CertStatus, error) {
+	if len(m.Chain) > 0 {
+		// get first of chain
+		block, _ := pem.Decode([]byte(m.Chain[0].PemCert))
+		cert, err := x509.ParseCertificate(block.Bytes)
+		if err != nil {
+			return models.CertUnparseable, err
+		}
+		if len(m.Chain) == 1 && cert.Issuer.String() == cert.Subject.String() {
+			return models.CertSelfSigned, nil
+		}
+		intermediatePool := x509.NewCertPool()
+		for i := 1; i < len(m.Chain); i++ {
+			block, _ := pem.Decode([]byte(m.Chain[i].PemCert))
+			cert, err := x509.ParseCertificate(block.Bytes)
+			if err != nil {
+				return models.CertUnparseable, err
+			}
+			intermediatePool.AddCert(cert)
+		}
+		_, err = cert.Verify(x509.VerifyOptions{
+			Intermediates: intermediatePool,
+			CurrentTime:   now,
+		})
+		if err == nil {
+			return models.CertValid, nil
+		} else {
+			switch e := err.(type) {
+			case x509.CertificateInvalidError:
+				switch e.Reason {
+				case x509.Expired:
+					return models.CertExpired, err
+				case x509.NotAuthorizedToSign:
+					return models.CertNotAuthorizedToSign, err
+				default:
+					return models.CertUnknownError, err
+				}
+			case x509.UnknownAuthorityError:
+				return models.CertUnknownAuthority, err
+			default:
+				return models.CertUnknownError, err
+			}
+		}
+	} else {
+		return models.CertEmptyChain, nil
+	}
 }
 
 func (m *CertMeta) GetKeySize() int {
@@ -104,21 +149,21 @@ func (m *CertMeta) GetSigAlgorithm() x509.SignatureAlgorithm {
 	return x509.UnknownSignatureAlgorithm
 }
 
-func (m *CertMeta) GetTLSProtocol() protocols.TLSProto {
+func (m *CertMeta) GetTLSProtocol() models.TLSProto {
 	if len(m.Chain) == 0 {
-		return protocols.UnknownTLSPRoto
+		return models.UnknownTLSPRoto
 	}
 	switch {
-	case m.Protocols.TLS13:
-		return protocols.TLS13
-	case m.Protocols.TLS12:
-		return protocols.TLS12
-	case m.Protocols.TLS11:
-		return protocols.TLS11
-	case m.Protocols.TLS10:
-		return protocols.TLS10
 	case m.Protocols.SSL30:
-		return protocols.SSL30
+		return models.SSL30
+	case m.Protocols.TLS10:
+		return models.TLS10
+	case m.Protocols.TLS11:
+		return models.TLS11
+	case m.Protocols.TLS12:
+		return models.TLS12
+	case m.Protocols.TLS13:
+		return models.TLS13
 	}
-	return protocols.UnknownTLSPRoto
+	return models.UnknownTLSPRoto
 }

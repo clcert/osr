@@ -2,7 +2,7 @@ package grabber
 
 import (
 	"fmt"
-	"github.com/clcert/osr/utils/protocols"
+	"github.com/clcert/osr/models"
 	"strconv"
 	"strings"
 	"time"
@@ -28,7 +28,7 @@ func ParseDate(format, path string) (date time.Time, err error) {
 func ParsePort(name string) (uint16, error) {
 	nameArr := strings.Split(name, "port")
 	if len(nameArr) > 1 {
-		name = nameArr[len(nameArr) - 1] // Protocol is into the last part of the name, after the "port" string
+		name = nameArr[len(nameArr)-1] // Protocol is into the last part of the name, after the "port" string
 	}
 	portNumberStr := Regex.Port.FindString(name)
 	if len(portNumberStr) == 0 {
@@ -41,14 +41,14 @@ func ParsePort(name string) (uint16, error) {
 	return uint16(port), nil
 }
 
-func ParseProtocol(name string) (protocol protocols.PortProtocol) {
-	protocol = protocols.TCP
+func ParseProtocol(name string) (protocol models.PortProtocol) {
+	protocol = models.TCP
 	protocolStr := Regex.Protocol.FindString(name)
 	if len(protocolStr) != 0 {
 		if protocolStr == "tcp" {
-			protocol = protocols.TCP
+			protocol = models.TCP
 		} else if protocolStr == "udp" {
-			protocol = protocols.UDP
+			protocol = models.UDP
 		}
 	}
 	return

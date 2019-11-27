@@ -1,13 +1,7 @@
 package protocols
 
-// PortProtocol represents the transport protocol checked in a port scan.
-type PortProtocol int
+import "github.com/clcert/osr/models"
 
-const (
-	UnknownProtocol PortProtocol = iota
-	TCP
-	UDP
-)
 
 var PortToProtocol = map[uint16]string{
 	21:   "ftp",
@@ -36,7 +30,7 @@ var ProtocolToPorts = map[string][]uint16{
 }
 
 // returns UDP if the port scanned is related to an UDP protocol.
-func GetTransport(port uint16) PortProtocol {
+func GetTransport(port uint16) models.PortProtocol {
 	switch port {
 	case 	53,    // DNS
 		123,   // NTP
@@ -45,8 +39,8 @@ func GetTransport(port uint16) PortProtocol {
 		1900,  // UPnP
 		20000, // DNP
 		47808: // BACnet
-		return UDP
+		return models.UDP
 	default:
-		return TCP
+		return models.TCP
 	}
 }

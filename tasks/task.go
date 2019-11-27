@@ -140,15 +140,16 @@ func (task *Task) execute(processName string, processIndex int) error {
 			"command": processName,
 			"index": processIndex,
 		}).Error("Process not found on task")
-		return fmt.Errorf("process not found on task: %s", processIndex)
+		return fmt.Errorf("process config not found on task: %s", processName)
 	}
 
 	process, ok := Registered[processName]
 	if !ok {
 		logs.Log.WithFields(logrus.Fields{
-			"command": processIndex,
+			"command": processName,
+			"index": processIndex,
 		}).Error("Process not defined in system")
-		return fmt.Errorf("process not defined in system: %s", processIndex)
+		return fmt.Errorf("process not defined in system: %s", processName)
 	}
 	if process.Execute == nil {
 		return fmt.Errorf("proccess command is not defined")
@@ -175,13 +176,14 @@ func (task *Task) execute(processName string, processIndex int) error {
 		source, err := sourceConf.New(sourceName, args.Params)
 		if err != nil {
 			logs.Log.WithFields(logrus.Fields{
-				"command": processIndex,
+				"command": processName,
+				"index": processIndex,
 			}).Error("source list error on index %d: %s", i, err)
 			return fmt.Errorf("source list error on index %d: %s", i, err)
 		}
 		sourcesList = append(sourcesList, source)
 		if err := source.Init(); err != nil {
-			return fmt.Errorf("Error initializing source: %s", err)
+			return fmt.Errorf("error initializing source: %s", err)
 		}
 		task.AddAttachments(source)
 	}
@@ -203,14 +205,16 @@ func (task *Task) execute(processName string, processIndex int) error {
 		saver, err := saverConf.New(saverName, args.Params)
 		if err != nil {
 			logs.Log.WithFields(logrus.Fields{
-				"command": processIndex,
+				"command": processName,
+				"index": processIndex,
 			}).Errorf("saver list error on index %d: %s", i, err)
 			return fmt.Errorf("saver list error on index %d: %s", i, err)
 		}
 		saversList = append(saversList, saver)
 		if err := saver.Start(); err != nil {
 			logs.Log.WithFields(logrus.Fields{
-				"command": processIndex,
+				"command": processName,
+				"index": processIndex,
 			}).Errorf("Cannot start saver with index %d: %s", i, err)
 			return err
 		}
@@ -225,16 +229,19 @@ func (task *Task) execute(processName string, processIndex int) error {
 	}()
 
 	logs.Log.WithFields(logrus.Fields{
-		"command": processIndex,
+		"command": processName,
+		"index": processIndex,
 	}).Info("executing process")
 	err = process.Execute(args)
 	if err == nil {
 		logs.Log.WithFields(logrus.Fields{
-			"command": processIndex,
+			"command": processName,
+			"index": processIndex,
 		}).Info("process succeeded")
 	} else {
 		logs.Log.WithFields(logrus.Fields{
-			"command": processIndex,
+			"command": processName,
+			"index": processIndex,
 		}).Error("process failed")
 	}
 	return err
@@ -262,7 +269,7 @@ func (task *Task) AddFailed(name string, err error) {
 
 // GetConfig returns the configuration with an specific name in the task.
 func (task *Task) GetConfig(index int) *ProcessConfig {
-	if len(task.TaskConfig.Processes) < index {
+	if index < len(task.TaskConfig.Processes) {
 		return task.TaskConfig.Processes[index]
 	}
 	return nil

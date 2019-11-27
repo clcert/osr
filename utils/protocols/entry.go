@@ -2,6 +2,7 @@ package protocols
 
 import (
 	"crypto/x509"
+	"github.com/clcert/osr/models"
 	"net"
 	"time"
 )
@@ -15,24 +16,12 @@ type Entry interface {
 }
 
 type Certificate interface {
-	IsAutosigned() bool
+	CheckValid(time.Time) (models.CertStatus, error)
 	GetKeySize() int
 	GetExpirationDate() time.Time
 	GetOrganizationName() string
 	GetOrganizationURL() string
 	GetAuthority() string
 	GetSigAlgorithm() x509.SignatureAlgorithm
-	GetTLSProtocol() TLSProto
+	GetTLSProtocol() models.TLSProto
 }
-
-type TLSProto int
-
-const (
-	UnknownTLSPRoto TLSProto = iota
-	SSL30
-	TLS10
-	TLS11
-	TLS12
-	TLS13
-)
-

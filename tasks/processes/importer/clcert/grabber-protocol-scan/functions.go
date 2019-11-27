@@ -7,9 +7,9 @@ import (
 	"github.com/clcert/osr/sources"
 	"github.com/clcert/osr/tasks"
 	"github.com/clcert/osr/utils/censys"
+	"github.com/clcert/osr/utils/filters"
 	"github.com/clcert/osr/utils/grabber"
 	"github.com/clcert/osr/utils/protocols"
-	"github.com/clcert/osr/utils/filters"
 	"github.com/sirupsen/logrus"
 	"strings"
 	"time"
@@ -71,16 +71,24 @@ func parseFile(file sources.Entry, args *tasks.Context, conf *filters.ScanConfig
 		if err := entry.GetError(); err != nil {
 			continue
 		}
+		now := entry.GetTime(censys.DateFormat, options.DefaultDate).Local()
 		cert, err := entry.GetCertificate()
 		if err == nil {
+			valid, err := cert.CheckValid(now)
+			if err != nil && valid == models.CertUnknownError {
+				args.Log.WithFields(logrus.Fields{
+					"file_path": file.Path(),
+					"ip": entry.GetIP(),
+				}).Errorf("Error checking certificate: %s", err)
+			}
 			if err = saver.Save(&models.Certificate{
 				TaskID:             args.GetTaskID(),
 				SourceID:           args.GetSourceID(),
-				Date:               entry.GetTime(censys.DateFormat, options.DefaultDate).Local(),
+				Date:               now,
 				ScanIP:             conf.SourceIP,
 				IP:                 entry.GetIP(),
 				PortNumber:         port,
-				IsAutosigned:       cert.IsAutosigned(),
+				Status:             valid,
 				KeySize:            cert.GetKeySize(),
 				ExpirationDate:     cert.GetExpirationDate(),
 				OrganizationName:   cert.GetOrganizationName(),
@@ -97,9 +105,13 @@ func parseFile(file sources.Entry, args *tasks.Context, conf *filters.ScanConfig
 				continue
 			}
 		}
-		if strings.Contains(file.Path(), "certificate") {
+		if strings.Contains(file.Path(), "certificate")  {
 			continue // File contains only certificates
 		}
+		if p, ok := args.Params["certs_only"]; ok && p == "true" {
+			continue // skips ports
+		}
+
 		portScan := &models.PortScan{
 			TaskID:     args.GetTaskID(),
 			SourceID:   args.GetSourceID(),
