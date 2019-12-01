@@ -202,3 +202,28 @@ var darknet = &Report{
 		"dst_port": "dest_port",
 	},
 }
+
+var proxy = &Report{
+	Filename: "darknet-chile-geo.csv",
+	Type:     models.DarknetReport,
+	DeletedFields: []string{
+		"timestamp",
+		"ip",
+		"asn",
+		"dst_asn",
+		"geo",
+		"dst_geo",
+		"region",
+		"city",
+		"naics",
+		"dst_naics",
+		"sic",
+		"dst_sic",
+		"sector",
+		"dst_sector",
+	},
+	RemappedFields: map[string]string{
+		"dst_ip":   "dest_ip",
+		"dst_port": "dest_port",
+	},
+}

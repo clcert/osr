@@ -131,10 +131,11 @@ func (m *Model) BeforeCreateTable(db *pg.DB) error {
 func (m *Model) AfterCreateTable(db *pg.DB) error {
 	// Hardcoded Statements
 	if m.AfterCreateStmts != nil {
-		logs.Log.WithFields(logrus.Fields{
-			"model": m.Name,
-		}).Info("Executing hardcoded after statements...")
 		for _, stmt := range m.AfterCreateStmts {
+			logs.Log.WithFields(logrus.Fields{
+				"model": m.Name,
+				"stmt": stmt,
+			}).Info("Executing hardcoded after statements...")
 			_, err := db.Model(m.StructType).Exec(stmt)
 			if err != nil {
 				return err

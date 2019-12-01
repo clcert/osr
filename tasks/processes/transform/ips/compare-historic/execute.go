@@ -41,7 +41,6 @@ func Execute(args *tasks.Context) error {
 	return nil
 }
 
-
 func CompareNextPair(csv1, csv2 *utils.HeadedCSV, saver savers.Saver, args *tasks.Context) error {
 	if !csv1.HasHeader("ip") || !csv2.HasHeader("date") || !csv2.HasHeader("port_number") {
 		return fmt.Errorf("file must have ip, port number and date headers")
@@ -74,13 +73,20 @@ func CompareNextPair(csv1, csv2 *utils.HeadedCSV, saver savers.Saver, args *task
 			csv2Name: fmt.Sprintf("%d", countIPs[csv2.Name]),
 			"both":   fmt.Sprintf("%d", countIPs["both"]),
 		}
+		filename, ok := args.Params["export_name"]
+		if !ok {
+			var name1, name2 string
+			if csv1Name < csv2Name {
+				name1, name2 = csv1Name, csv2Name
+			} else {
+				name2, name1 = csv1Name, csv2Name
+			}
+			filename = fmt.Sprintf("compare_%s_%s.csv", name1, name2)
+		}
 		err = saver.Save(savers.Savable{
 			Object: line,
 			Meta: map[string]string{
-				"outID": fmt.Sprintf(
-					"compare_%s_%s.csv",
-					csv1Name,
-					csv2Name),
+				"outID": filename,
 			},
 		})
 		if err != nil {

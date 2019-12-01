@@ -18,6 +18,7 @@ var PortScanModel = Model{
 		"CREATE INDEX IF NOT EXISTS port_scan_service_active ON ?TableName USING btree (service_active)",
 		"CREATE INDEX IF NOT EXISTS port_scan_service_name ON ?TableName USING btree (service_name)",
 		"CREATE INDEX IF NOT EXISTS port_scan_service_version ON ?TableName USING btree (service_version)",
+		"CREATE INDEX IF NOT EXISTS port_scan_source_id ON ?TableName USING btree (source_id)",
 	},
 }
 

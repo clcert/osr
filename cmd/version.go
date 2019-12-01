@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const VERSION = "3.6.0"
+const VERSION = "3.7.0"
 
 // CreateDB creates all the models databases.
 var VersionCmd = &cobra.Command{

@@ -152,7 +152,7 @@ func parseMeta(file sources.Entry) (date time.Time, port uint16, protocol string
 	}
 	protocol, ok := protocols.PortToProtocol[port]
 	if !ok {
-		err = fmt.Errorf("unknown protocol for port %s", port)
+		err = fmt.Errorf("unknown protocol for port %d", port)
 		return
 	}
 	return
