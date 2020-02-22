@@ -125,3 +125,7 @@ func (params Params) Get(key string, defVal string) string {
 func (formatArgs *FormatArgs) Get(key, defVal string) string {
 	return formatArgs.Params.Get(key, defVal)
 }
+
+func (formatArgs *FormatArgs) Today() string {
+	return formatArgs.Date.Format("02-01-2006")
+}
