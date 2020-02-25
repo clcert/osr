@@ -2,19 +2,17 @@ package asns
 
 import (
 	"github.com/PuerkitoBio/goquery"
-	"github.com/clcert/osr/savers"
 	"github.com/clcert/osr/tasks"
 	"github.com/sirupsen/logrus"
-	"net/http"
 	"net/url"
 )
 
 const (
-	publicServiceSelector  = "a.service-item"
-	regionSelector         = "a.region-item"
-	ministrySelector       = "a.ministry-item"
-	ministryButtonSelector	 = "a.profile_buttons > a"
-	communeSelector	 = ".commune > article > a.text-red"
+	publicServiceSelector = "a.service-item"
+	regionSelector        = "a.region-item"
+	ministrySelector      = "a.ministry-item"
+	buttonSelector        = "div.profile_buttons > a"
+	communeSelector       = ".commune > article > a.text-red"
 )
 
 func Execute(ctx *tasks.Context) error {
@@ -49,7 +47,7 @@ func Execute(ctx *tasks.Context) error {
 		ctx.Log.Info("Importing ministry urls...")
 		ministrySites := getSelectorURLs(doc, rootURL, ministrySelector)
 		for _, site := range ministrySites {
-			if err := addDomainsFromURL(site, ministryButtonSelector, saver, ctx); err != nil {
+			if err := addDomainsFromURL(site, buttonSelector, saver, ctx); err != nil {
 				ctx.Log.WithFields(logrus.Fields{
 					"url": site.String(),
 				}).Error("cannot add domains from ministry site: %s", err)
@@ -63,6 +61,14 @@ func Execute(ctx *tasks.Context) error {
 		ctx.Log.Info("Importing region urls...")
 		regionSites := getSelectorURLs(doc, rootURL, regionSelector)
 		for _, site := range regionSites {
+			if err := addDomainsFromURL(site, buttonSelector, saver, ctx); err != nil {
+				ctx.Log.WithFields(logrus.Fields{
+					"url": site.String(),
+				}).Error("cannot add domains from ministry site: %s", err)
+			}
+			ctx.Log.WithFields(logrus.Fields{
+				"url": site.String(),
+			}).Info("done with this URL!")
 			if err := addDomainsFromURL(site, communeSelector, saver, ctx); err != nil {
 				ctx.Log.WithFields(logrus.Fields{
 					"url": site.String(),
@@ -77,4 +83,3 @@ func Execute(ctx *tasks.Context) error {
 	}
 	return nil
 }
-
