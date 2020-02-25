@@ -3,6 +3,7 @@ package importer
 import (
 	"github.com/clcert/osr/models"
 	"github.com/clcert/osr/tasks"
+	gob_domains "github.com/clcert/osr/tasks/processes/importer/gobcl/gob_domains"
 )
 
 
@@ -15,7 +16,7 @@ func init() {
 			URL:             "https://www.gob.cl/instituciones/",
 			Execute:         gob_domains.Execute,
 			DefaultSourceID: models.MaxMind,
-			NumSources:      2,
+			NumSources:      1,
 			NumSavers:       1,
 		},
 	)

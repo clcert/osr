@@ -1,6 +1,7 @@
 package asns
 
 import (
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/clcert/osr/models"
 	"github.com/clcert/osr/savers"
@@ -12,7 +13,7 @@ import (
 	"time"
 )
 
-func addDomain(link *url.URL, saver savers.Saver, ctx *tasks.Context) error {
+func addDomain(link *url.URL, blacklist map[string]struct{}, saver savers.Saver, ctx *tasks.Context) error {
 	domain := link.Hostname()
 	domain = strings.TrimPrefix(domain, "www.") // canonizing domains
 	splitDomain := strings.Split(domain, ".")
@@ -22,7 +23,10 @@ func addDomain(link *url.URL, saver savers.Saver, ctx *tasks.Context) error {
 		name = splitDomain[len(splitDomain)-2]
 	}
 	if len(splitDomain) > 2 {
-		subdomain = splitDomain[len(splitDomain)-3]
+		subdomain = strings.Join(splitDomain[:len(splitDomain)-2], ".")
+	}
+	if _, ok := blacklist[name]; ok {
+		return fmt.Errorf("blacklisted domain")
 	}
 	err := saver.Save(&models.Domain{
 		TaskID:           ctx.GetTaskID(),
@@ -66,7 +70,7 @@ func getSelectorURLs(doc *goquery.Document, rootURL *url.URL, selector string) (
 	return
 }
 
-func addDomainsFromURL(url *url.URL, selector string, saver savers.Saver, ctx *tasks.Context) error {
+func addDomainsFromURL(url *url.URL, selector string, blacklist map[string]struct{}, saver savers.Saver, ctx *tasks.Context) error {
 	request, err := http.Get(url.String())
 	if err != nil {
 		return err
@@ -76,12 +80,11 @@ func addDomainsFromURL(url *url.URL, selector string, saver savers.Saver, ctx *t
 	if err != nil {
 		return err
 	}
-	addDomainsFromSelector(doc, selector, saver, ctx)
+	addDomainsFromSelector(doc, selector, blacklist, saver, ctx)
 	return nil
 }
 
-
-func addDomainsFromSelector(doc *goquery.Document, selector string, saver savers.Saver, ctx *tasks.Context) {
+func addDomainsFromSelector(doc *goquery.Document, selector string, blacklist map[string]struct{}, saver savers.Saver, ctx *tasks.Context) {
 	// Getting public services links first
 	doc.Find(selector).Each(func(i int, s *goquery.Selection) {
 		if link, exists := s.Attr("href"); exists {
@@ -91,11 +94,20 @@ func addDomainsFromSelector(doc *goquery.Document, selector string, saver savers
 					"url": url,
 				}).Error("error parsing domain: %s", err)
 			}
-			if err := addDomain(url, saver, ctx); err != nil {
+			if err := addDomain(url, blacklist, saver, ctx); err != nil {
 				ctx.Log.WithFields(logrus.Fields{
 					"url": url,
 				}).Error("error parsing domain: %s", err)
 			}
 		}
 	})
+}
+
+func getBlacklist(ctx *tasks.Context) map[string]struct{} {
+	blacklistMap := make(map[string]struct{})
+	blacklist := strings.Split(ctx.Params.Get("blacklist", ""), ",")
+	for _, domain := range blacklist {
+		blacklistMap[domain] = struct{}{}
+	}
+	return blacklistMap
 }
