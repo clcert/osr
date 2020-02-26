@@ -1,20 +1,18 @@
 package asns
 
 import (
-	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/clcert/osr/models"
-	"github.com/clcert/osr/savers"
 	"github.com/clcert/osr/tasks"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/tchap/go-patricia.v2/patricia"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 )
 
-func addDomain(link *url.URL, blacklist map[string]struct{}, saver savers.Saver, ctx *tasks.Context) error {
-	domain := link.Hostname()
+func addDomain(domain string, ctx *findContext) error {
 	domain = strings.TrimPrefix(domain, "www.") // canonizing domains
 	splitDomain := strings.Split(domain, ".")
 	tld := splitDomain[len(splitDomain)-1]
@@ -22,85 +20,84 @@ func addDomain(link *url.URL, blacklist map[string]struct{}, saver savers.Saver,
 	if len(splitDomain) > 1 {
 		name = splitDomain[len(splitDomain)-2]
 	}
+	if _, ok := ctx.blacklist[name]; ok {
+		return nil
+	}
 	if len(splitDomain) > 2 {
 		subdomain = strings.Join(splitDomain[:len(splitDomain)-2], ".")
 	}
-	if _, ok := blacklist[name]; ok {
-		return fmt.Errorf("blacklisted domain")
-	}
-	err := saver.Save(&models.Domain{
-		TaskID:           ctx.GetTaskID(),
-		SourceID:         models.CLCERT,
-		Subdomain:        subdomain,
-		Name:             name,
-		TLD:              tld,
-		RegistrationDate: time.Now(),
-	})
-	if err != nil {
-		return err
-	}
-	err = saver.Save(&models.DomainToCategory{
-		TaskID:             ctx.GetTaskID(),
-		SourceID:           models.CLCERT,
-		DomainSubdomain:    subdomain,
-		DomainName:         name,
-		DomainTLD:          tld,
-		DomainCategorySlug: "gov",
-	})
-	if err != nil {
-		return err
-	}
-	if err != nil {
-		ctx.Log.Info("Could not insert domain: %s...", err)
+	if len(tld) > 0 && len(domain) > 0 {
+		err := ctx.saver.Save(&models.Domain{
+			TaskID:           ctx.taskCtx.GetTaskID(),
+			SourceID:         models.CLCERT,
+			Subdomain:        subdomain,
+			Name:             name,
+			TLD:              tld,
+			RegistrationDate: time.Now(),
+		})
+		if err != nil {
+			ctx.taskCtx.Log.WithFields(logrus.Fields{
+				"domain": domain,
+			}).Info("Could not insert domain: %s...", err)
+			return err
+		}
+		err = ctx.saver.Save(&models.DomainToCategory{
+			TaskID:             ctx.taskCtx.GetTaskID(),
+			SourceID:           models.CLCERT,
+			DomainSubdomain:    subdomain,
+			DomainName:         name,
+			DomainTLD:          tld,
+			DomainCategorySlug: "gov",
+		})
+		if err != nil {
+			ctx.taskCtx.Log.WithFields(logrus.Fields{
+				"domain": domain,
+			}).Info("Could not insert domain category: %s...", err)
+		}
 	}
 	return nil
 }
 
-func getSelectorURLs(doc *goquery.Document, rootURL *url.URL, selector string) (sites []*url.URL) {
-	sites = make([]*url.URL, 0)
-	doc.Find(selector).Each(func(i int, s *goquery.Selection) {
+func getURLs(doc *goquery.Document, rootURL *url.URL) (local map[string]*url.URL, external map[string]struct{}) {
+	local = make(map[string]*url.URL, 0)
+	external = make(map[string]struct{}, 0)
+	doc.Find("a").Each(func(i int, s *goquery.Selection) {
 		if link, exists := s.Attr("href"); exists {
-			fullURL, err := rootURL.Parse(link)
+			anURL, err := rootURL.Parse(link)
 			if err != nil {
 				return
 			}
-			sites = append(sites, fullURL)
+			if anURL.Hostname() == rootURL.Hostname() {
+				local[anURL.String()] = anURL
+			} else {
+				external[anURL.Hostname()] = struct{}{}
+			}
 		}
 	})
 	return
 }
 
-func addDomainsFromURL(url *url.URL, selector string, blacklist map[string]struct{}, saver savers.Saver, ctx *tasks.Context) error {
-	request, err := http.Get(url.String())
-	if err != nil {
-		return err
-	}
-	defer request.Body.Close()
-	doc, err := goquery.NewDocumentFromReader(request.Body)
-	if err != nil {
-		return err
-	}
-	addDomainsFromSelector(doc, selector, blacklist, saver, ctx)
-	return nil
-}
-
-func addDomainsFromSelector(doc *goquery.Document, selector string, blacklist map[string]struct{}, saver savers.Saver, ctx *tasks.Context) {
-	// Getting public services links first
-	doc.Find(selector).Each(func(i int, s *goquery.Selection) {
-		if link, exists := s.Attr("href"); exists {
-			url, err := url.Parse(link)
-			if err != nil {
-				ctx.Log.WithFields(logrus.Fields{
-					"url": url,
-				}).Error("error parsing domain: %s", err)
-			}
-			if err := addDomain(url, blacklist, saver, ctx); err != nil {
-				ctx.Log.WithFields(logrus.Fields{
-					"url": url,
-				}).Error("error parsing domain: %s", err)
-			}
+func checkLocalURLs(localURLs map[string]*url.URL, ctx *findContext) {
+	for urlStr, url := range localURLs {
+		localPath := patricia.Prefix(urlStr)
+		if ctx.trie.Match(localPath) {
+			continue
 		}
-	})
+		// URL is not in our history, we add it and request it
+		ctx.trie.Set(localPath, struct{}{})
+		request, err := http.Get(url.String())
+		if err != nil {
+			ctx.taskCtx.Log.WithFields(logrus.Fields{
+				"url": url.String(),
+			}).Error("error reading url: %v", err)
+			continue
+		}
+		ctx.stack = append(ctx.stack, &stackItem{
+			Closer: request.Body,
+			Reader: request.Body,
+			url:    url,
+		})
+	}
 }
 
 func getBlacklist(ctx *tasks.Context) map[string]struct{} {
@@ -110,4 +107,39 @@ func getBlacklist(ctx *tasks.Context) map[string]struct{} {
 		blacklistMap[domain] = struct{}{}
 	}
 	return blacklistMap
+}
+
+func processPage(page *stackItem, rootURL *url.URL, ctx *findContext) {
+	defer page.Close()
+	// Load the HTML document
+	ctx.taskCtx.Log.WithFields(logrus.Fields{
+		"url": page.url.String(),
+	}).Info("Checking page")
+	doc, err := goquery.NewDocumentFromReader(page.Reader)
+	if err != nil {
+		ctx.taskCtx.Log.WithFields(logrus.Fields{
+			"url": page.url.String(),
+		}).Errorf("error reading file: %v", err)
+		return
+	}
+
+	// get URLs in HTML document
+	localURLs, externalDomains := getURLs(doc, rootURL)
+	ctx.taskCtx.Log.WithFields(logrus.Fields{
+		"url": page.url.String(),
+		"localURLs": len(localURLs),
+		"externalDomains": len(externalDomains),
+	}).Info("Page parsed")
+	if len(externalDomains) > 0 {
+		for domain, _ := range externalDomains {
+			if err := addDomain(domain, ctx); err != nil {
+				ctx.taskCtx.Log.WithFields(logrus.Fields{
+					"url": domain,
+				}).Errorf("cannot add domain: %s", err)
+			}
+		}
+	}
+	if len(localURLs) > 0 {
+		checkLocalURLs(localURLs, ctx)
+	}
 }

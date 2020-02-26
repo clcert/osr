@@ -28,16 +28,17 @@ type InsertConfig struct {
 
 // PostgresSaver defines a saver structure that connects with the default Postgres database.
 type PostgresSaver struct {
-	*PostgresConfig                       // Configuration related to the saver
-	name        string                    // Name for the saver instance
-	chanMutex   sync.Mutex                // Mutex to edit maps concurrently
-	insertMutex sync.Mutex                // Mutex for inserting if Config has mutex = true
-	db          *pg.DB                    // Pointer to Postgres DB connection
-	wg          sync.WaitGroup            // Wait Group to wait the finish of all channels
-	channels    map[string]chan<- Savable // A map of channels identified by the outID of the objects
-	inserted    int                       // Number of inserted elements (FYI)
-	errors      []error                   // List of errors
-	log         *logs.OSRLog              // Saver log
+	*PostgresConfig                          // Configuration related to the saver
+	name            string                   // Name for the saver instance
+	chanMutex       sync.Mutex               // Mutex to edit maps concurrently
+	insertMutex     sync.Mutex               // Mutex for inserting if Config has mutex = true
+	db              *pg.DB                   // Pointer to Postgres DB connection
+	wg              sync.WaitGroup           // Wait Group to wait the finish of all channels
+	channels        map[string]chan Savable  // A map of channels identified by the outID of the objects
+	closeSignals    map[string]chan struct{} // A map of channels identified by the outID of the objects, signaling close
+	inserted        int                      // Number of inserted elements (FYI)
+	errors          []error                  // List of errors
+	log             *logs.OSRLog             // Saver log
 }
 
 // New creates a new PostgresSaver based on a PostgresConfig struct.
@@ -62,7 +63,8 @@ func (config *PostgresConfig) New(name string, params utils.Params) (*PostgresSa
 	return &PostgresSaver{
 		name:           name,
 		PostgresConfig: config,
-		channels:       make(map[string]chan<- Savable),
+		channels:       make(map[string]chan Savable),
+		closeSignals:   make(map[string]chan struct{}),
 		errors:         make([]error, 0),
 		inserted:       0,
 		log:            log,
@@ -127,8 +129,8 @@ func (saver *PostgresSaver) Save(objs ...interface{}) error {
 
 func (saver *PostgresSaver) Finish() error {
 	saver.chanMutex.Lock()
-	for _, output := range saver.channels {
-		close(output)
+	for _, close := range saver.closeSignals {
+		close <- struct{}{}
 	}
 	saver.chanMutex.Unlock()
 	saver.wg.Wait()
@@ -160,20 +162,40 @@ func (saver *PostgresSaver) getInsertConfig(object Savable) *InsertConfig {
 	return conf
 }
 
-func (saver *PostgresSaver) startChannel(name string, channel <-chan Savable) {
+func (saver *PostgresSaver) startChannel(name string) {
 	saver.wg.Add(1)
 	var config *InsertConfig
 	objectList := make([]interface{}, 0)
-	for newObject := range channel {
-		if config == nil {
-			config = saver.getInsertConfig(newObject)
-		}
-		objectList = append(objectList, newObject.Object)
-		if len(objectList) >= saver.Buffer {
-			saver.insertToDatabase(objectList, config)
-			objectList = make([]interface{}, 0, saver.Buffer)
+	channel := saver.channels[name]
+	closeSignal := saver.closeSignals[name]
+L:
+	for {
+		select {
+		case newObject := <-channel:
+			if config == nil {
+				config = saver.getInsertConfig(newObject)
+			}
+			objectList = append(objectList, newObject.Object)
+			if len(objectList) >= saver.Buffer {
+				saver.insertToDatabase(objectList, config)
+				objectList = make([]interface{}, 0, saver.Buffer)
+			}
+		case <-time.After(saver.InsertTimeout * time.Second):
+			if len(objectList) > 0 {
+				saver.log.WithFields(logrus.Fields{
+					"number":   len(objectList),
+					"inserted": saver.inserted,
+					"mutex":    saver.Mutex,
+					"timeout":  saver.InsertTimeout,
+				}).Info("No object received in some time, saving...")
+				saver.insertToDatabase(objectList, config)
+				objectList = make([]interface{}, 0, saver.Buffer)
+			}
+		case <-closeSignal:
+			break L
 		}
 	}
+
 	saver.insertToDatabase(objectList, config)
 	saver.log.WithFields(logrus.Fields{
 		"outID": name,
@@ -202,7 +224,7 @@ func (saver *PostgresSaver) insertToDatabase(objList []interface{}, config *Inse
 			saver.insertMutex.Lock()
 			defer saver.insertMutex.Unlock()
 		}
- 		result, err := query.Insert()
+		result, err := query.Insert()
 		if err != nil {
 			saver.log.Errorf("Couldn't insert entries to database: %v", err)
 			saver.errors = append(saver.errors, err)
@@ -219,10 +241,10 @@ func (saver *PostgresSaver) getChannel(name string) chan<- Savable {
 	if ok {
 		return channel
 	}
-	newChannel := make(chan Savable)
-	saver.channels[name] = newChannel
-	go saver.startChannel(name, newChannel)
-	return newChannel
+	saver.channels[name] = make(chan Savable)
+	saver.closeSignals[name] = make(chan struct{})
+	go saver.startChannel(name)
+	return saver.channels[name]
 }
 
 func (insertconfig *InsertConfig) Format(params utils.Params) *InsertConfig {
