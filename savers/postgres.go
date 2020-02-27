@@ -39,6 +39,7 @@ type PostgresSaver struct {
 	inserted        int                      // Number of inserted elements (FYI)
 	errors          []error                  // List of errors
 	log             *logs.OSRLog             // Saver log
+	i               int
 }
 
 // New creates a new PostgresSaver based on a PostgresConfig struct.
@@ -104,12 +105,13 @@ func (saver *PostgresSaver) SendMessage(msg interface{}) error {
 	}
 	saver.chanMutex.Lock()
 	defer saver.chanMutex.Unlock()
-	objChan, ok := saver.channels[closeID]
+	objChan, ok := saver.closeSignals[closeID]
 	if !ok {
 		return fmt.Errorf("channel not found: %s", closeID)
 	}
-	close(objChan)
+	objChan <- struct{}{}
 	delete(saver.channels, closeID)
+	delete(saver.closeSignals, closeID)
 	return nil
 }
 
@@ -122,6 +124,7 @@ func (saver *PostgresSaver) Save(objs ...interface{}) error {
 		default:
 			savable = Savable{Object: obj}
 		}
+		saver.i++
 		saver.getChannel(savable.GetOutID()) <- savable
 	}
 	return nil
