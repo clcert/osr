@@ -9,7 +9,7 @@ import (
 func init() {
 	tasks.Registered.Register(
 		&tasks.Process{
-			Name:            "Simple Data Exporter",
+			Name:            "Simple CSV Data Exporter",
 			Command:         "export/simple",
 			Description:     "Exports information from csv-like sources to a SFTP location",
 			DefaultSourceID: models.CLCERT, // CLCERT transforms it

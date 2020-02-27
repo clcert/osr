@@ -22,7 +22,7 @@ type accessibleMap map[models.RRType]map[string]struct{}
 // The files are located in the folder "basepath" and have the following
 // structure as name: %s_port_%d.txt, where %s is the name of the scan and
 // %d is the port scanned.
-func GetAccessibleIPs(source sources.Source, args *tasks.Context) (accessibleMap, error) {
+func getAccessibleIPs(source sources.Source, args *tasks.Context) (accessibleMap, error) {
 	var accessible = make(accessibleMap)
 	var nameType models.RRType
 	for {
@@ -204,7 +204,7 @@ func parseScan(args *tasks.Context) error {
 	mercurySource := args.Sources[0]
 	ipsSource := args.Sources[1]
 	args.Log.Info("Getting accessible IPs from scan...")
-	accessible, err := GetAccessibleIPs(ipsSource, args)
+	accessible, err := getAccessibleIPs(ipsSource, args)
 	if err != nil {
 		args.Log.Error("Problems with getting accessible IPs")
 		return err
