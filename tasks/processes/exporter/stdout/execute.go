@@ -1,37 +1,39 @@
 package stdout
 
 import (
+	"bufio"
 	"fmt"
-	"github.com/clcert/osr/sources"
+	"github.com/clcert/osr/logs"
 	"github.com/clcert/osr/tasks"
-	"strconv"
-	"sync"
+	"github.com/sirupsen/logrus"
 )
 
 func Execute(args *tasks.Context) error {
 	source := args.Sources[0]
-	threadsStr := args.Params.Get("threads", "1")
-	threads, err := strconv.Atoi(threadsStr)
-	if err != nil {
-		return fmt.Errorf("cannot parse threads arg: %s", err)
-	}
-	wg := new(sync.WaitGroup)
-	entries := make(chan sources.Entry)
-	for i:=0; i<threads; i++ {
-		wg.Add(1)
-		go process(entries, wg)
-	}
-
-	go func() {
-		for {
-			entry := source.Next()
-			if entry == nil {
-				close(entries)
-				break
-			}
-			entries <- entry
+	for {
+		file := source.Next()
+		if file == nil {
+			break
 		}
-	}()
-	wg.Wait()
+		logs.Log.WithFields(logrus.Fields{
+			"file": file.Path(),
+		}).Info("opening file")
+		reader, err := file.Open()
+		if err != nil {
+			logs.Log.WithFields(logrus.Fields{
+				"file": file.Path(),
+			}).Error("couldn't open file: %s", err)
+			file.Close()
+			return err
+		}
+		scanner := bufio.NewScanner(reader)
+		for scanner.Scan() {
+			line := scanner.Text()
+			fmt.Println(line)
+		}
+		if err := file.Close(); err != nil {
+			return err
+		}
+	}
 	return nil
 }
