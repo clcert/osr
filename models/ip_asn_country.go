@@ -16,13 +16,13 @@ var IpAsnCountryModel = Model{
 
 // IpAsnCountry represents a valid scanned Address (That is, properly formed and not in a reserved range).
 type IpAsnCountry struct {
-	TaskID           int `sql:",pk,type:bigint"`          // Number of the importer session related to this value
-	Task             *Task                                // The importer session
+	TaskID           int          `sql:",pk,type:bigint"` // Number of the importer session related to this value
+	Task             *Task        // The importer session
 	SourceID         DataSourceID `sql:",pk,type:bigint"` // A listed source for the data.
-	Source           *Source                              // Source pointer
-	IP               *net.IP `sql:",pk"`                  // Address of the relation
-	AsnID            int                                  // ASN associated to the Address
+	Source           *Source      // Source pointer
+	IP               *net.IP      `sql:",pk"` // Address of the relation
+	AsnID            int          // ASN associated to the Address
 	ASN              ASN
-	CountryGeonameId int     // Country associated to the Address
+	CountryGeonameId int     `sql:",type:integer"` // Country associated to the Address
 	Country          Country // Country Struct
 }
