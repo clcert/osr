@@ -26,8 +26,8 @@ func NewFormatArgs(params Params) *FormatArgs {
 	date := time.Now()
 	d, ok := params["date"]
 	if ok {
-		dd, err := time.Parse(d, dateFormat)
-		if err != nil {
+		dd, err := time.Parse(dateFormat, d)
+		if err == nil {
 			date = dd
 		}
 	}

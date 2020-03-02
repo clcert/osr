@@ -245,14 +245,14 @@ func GetIpAsnCountries(args *tasks.Context) error {
 	joinSubnetAsn := db.Model(&models.SubnetASN{}).
 		Column("subnet", "asn_id", "source_id").
 		Join("JOIN asns as asn").
-		JoinOn("subnet_asns.asn_id = asn.id").
-		JoinOn("subnet_asns.task_id = ?", taskIDASN)
+		JoinOn("subnet_asn.asn_id = asn.id").
+		JoinOn("subnet_asn.task_id = ?", taskIDASN)
 
 	joinSubnetCountry := db.Model(&models.SubnetCountry{}).
 		Column("subnet", "country_geoname_id").
 		Join("JOIN countries as country").
-		JoinOn("subnet_countries.country_geoname_id = country.geoname_id").
-		JoinOn("subnet_countries.task_id = ?", taskIDCountry)
+		JoinOn("subnet_country.country_geoname_id = country.geoname_id").
+		JoinOn("subnet_country.task_id = ?", taskIDCountry)
 
 	ipAsnCountryList := make([]*models.IpAsnCountry, 0)
 	query := db.Model().TableExpr("(?) as dr", distinctIPs).
