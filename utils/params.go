@@ -13,21 +13,31 @@ import (
 type Params map[string]string
 
 // FormatArgs represents the union between a Params struct and the current date.
-// TODO: use Params to set the date?
 type FormatArgs struct {
 	Params Params    // A list of params
 	Date   time.Time // Current date
 }
 
+const dateFormat = "2006-01-02"
+
 // Returns a new FormatArgs object.
+// it uses an arg param as date if "date" is defined
 func NewFormatArgs(params Params) *FormatArgs {
+	date := time.Now()
+	d, ok := params["date"]
+	if ok {
+		dd, err := time.Parse(d, dateFormat)
+		if err != nil {
+			date = dd
+		}
+	}
 	return &FormatArgs{
 		Params: params,
-		Date:   time.Now(),
+		Date:   date,
 	}
 }
 
-// transforms a list of strings in the format key:value to a Params struct.
+// ListToParams transforms a list of strings in the format key:value to a Params struct.
 func ListToParams(paramsList []string) Params {
 	params := make(Params)
 	for _, param := range paramsList {
@@ -127,5 +137,5 @@ func (formatArgs *FormatArgs) Get(key, defVal string) string {
 }
 
 func (formatArgs *FormatArgs) Today() string {
-	return formatArgs.Date.Format("02-01-2006")
+	return formatArgs.Date.Format(dateFormat)
 }
