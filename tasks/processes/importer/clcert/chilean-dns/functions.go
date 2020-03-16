@@ -10,6 +10,7 @@ import (
 	"github.com/clcert/osr/sources"
 	"github.com/clcert/osr/tasks"
 	"github.com/clcert/osr/utils"
+	"github.com/clcert/osr/utils/geoasn"
 	"github.com/sirupsen/logrus"
 	"io"
 	"net"
@@ -230,44 +231,39 @@ func GetIpAsnCountries(args *tasks.Context) error {
 		return err
 	}
 	defer db.Close()
-	distinctIPs := db.Model(&models.DnsRR{}).ColumnExpr("distinct task_id, ip_value as ip").Where("task_id = ?", args.GetTaskID())
-
-	taskIDASN, err := models.LatestModelTaskID(db, &models.SubnetASN{})
+	dnsRRs := make([]*models.DnsRR, 0)
+	taskID, err := models.LatestModelTaskID(db, &models.DnsRR{})
+	if err != nil {
+		return err
+	}
+	err = db.Model(&models.DnsRR{}).
+		ColumnExpr("distinct ip_value").
+		Where("task_id = ?", taskID).Select(&dnsRRs)
+	if err != nil {
+		return err
+	}
+	classifier, err := geoasn.NewClassifier(db, models.MaxMind)
 	if err != nil {
 		return err
 	}
 
-	taskIDCountry, err := models.LatestModelTaskID(db, &models.SubnetCountry{})
-	if err != nil {
-		return err
-	}
-
-	joinSubnetAsn := db.Model(&models.SubnetASN{}).
-		Column("subnet", "asn_id", "source_id").
-		Join("JOIN asns as asn").
-		JoinOn("subnet_asn.asn_id = asn.id").
-		JoinOn("subnet_asn.task_id = ?", taskIDASN)
-
-	joinSubnetCountry := db.Model(&models.SubnetCountry{}).
-		Column("subnet", "country_geoname_id").
-		Join("JOIN countries as country").
-		JoinOn("subnet_country.country_geoname_id = country.geoname_id").
-		JoinOn("subnet_country.task_id = ?", taskIDCountry)
-
-	ipAsnCountryList := make([]*models.IpAsnCountry, 0)
-	query := db.Model().TableExpr("(?) as dr", distinctIPs).
-		Column("dr.task_id", "dr.ip", "asns.asn_id", "asns.source_id", "countries.country_geoname_id").
-		Join("JOIN (?) as asns", joinSubnetAsn).
-		JoinOn("dr.ip << asns.subnet").
-		Join("JOIN (?) as countries", joinSubnetCountry).
-		JoinOn("dr.ip << countries.subnet")
-	if err := query.Select(&ipAsnCountryList); err != nil {
-		args.Log.Error("Err with the query :(")
-		return err
-	}
 	args.Log.Info("Information acquired! now saving...")
 
-	for _, ipAsnCountry := range ipAsnCountryList {
+	for _, dnsRR := range dnsRRs {
+		asnID, countryID, err := classifier.GetGeoASN(dnsRR.IPValue)
+		ipAsnCountry := &models.IpAsnCountry{
+			TaskID:           args.GetTaskID(),
+			SourceID:         args.GetSourceID(),
+			IP:               dnsRR.IPValue,
+			AsnID:            asnID,
+			CountryGeonameId: countryID,
+		}
+		if err != nil {
+			args.Log.WithFields(logrus.Fields{
+				"ip": dnsRR.IPValue,
+			}).Errorf("Cannot get ASN and Geoinfo from ip: %s", err)
+			continue
+		}
 		if err := args.Savers[0].Save(ipAsnCountry); err != nil {
 			return err
 		}

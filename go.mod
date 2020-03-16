@@ -7,6 +7,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/fatih/structs v1.1.0
 	github.com/go-pg/pg v0.0.0-20190628113742-c6ebb590c53e
+	github.com/google/btree v1.0.0
 	github.com/google/gopacket v1.1.17
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jmoiron/sqlx v1.2.0

@@ -20,7 +20,7 @@ type IpAsnCountry struct {
 	Task             *Task        // The importer session
 	SourceID         DataSourceID `sql:",pk,type:bigint"` // A listed source for the data.
 	Source           *Source      // Source pointer
-	IP               *net.IP      `sql:",pk"` // Address of the relation
+	IP               net.IP      `sql:",pk"` // Address of the relation
 	AsnID            int          // ASN associated to the Address
 	ASN              ASN
 	CountryGeonameId int     `sql:",type:integer"` // Country associated to the Address
