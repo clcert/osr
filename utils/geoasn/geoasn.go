@@ -72,7 +72,7 @@ func getASNTree(db *pg.DB, source models.DataSourceID) (tree *IPNetTree, err err
 		return
 	}
 	subnetList := make([]*models.SubnetASN, 0)
-	if err = db.Model(&models.SubnetCountry{}).
+	if err = db.Model(&models.SubnetASN{}).
 		Column("subnet", "asn_id").
 		Where("task_id = ? and source_id = ?", taskID, source).
 		Order("subnet ASC").Select(&subnetList); err != nil {

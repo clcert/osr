@@ -14,19 +14,9 @@ type IPNetNode struct {
 
 // Less allows us to implement btree.Item interface
 func (node *IPNetNode) Less(than btree.Item) bool {
-	ipCompare := bytes.Compare(node.IP, than.(*IPNetNode).IP)
-	switch ipCompare {
-	case 0:
-		maskCompare := bytes.Compare(node.Mask, than.(*IPNetNode).Mask)
-		switch maskCompare {
-		case 0:
-			return false
-		default:
-			return maskCompare == -1 // 10.0.0.1/32 > 10.0.0.1/24 => 32 > 24
-		}
-	default:
-		return ipCompare == -1
-	}
+	thanNet := than.(*IPNetNode)
+	cmp := bytes.Compare(node.IP.To4(), thanNet.IP.To4())
+	return cmp == -1 && !(node.Contains(thanNet.IP))
 }
 
 // IPNetTree represents a BTree with IPNets and extra value
@@ -50,12 +40,9 @@ func (tree *IPNetTree) AddNode(node *IPNetNode) btree.Item {
 // GetIPData returns the associated value to the smallest subnet the IP is part of.
 func (tree *IPNetTree) GetIPData(ip net.IP) (interface{}, bool) {
 	item := &IPNetNode{IPNet: &net.IPNet{ip, net.IPv4Mask(255, 255, 255, 255)}}
-	var found *IPNetNode
-	tree.BTree.DescendLessOrEqual(item, func(i btree.Item) bool {
-		if i.(*IPNetNode).IPNet.Contains(item.IP) {
-			found = i.(*IPNetNode)
-		}
-		return false
-	})
-	return found.Value, found.Value != nil
+	found := tree.BTree.Get(item)
+	if found == nil {
+		return nil, false
+	}
+	return found.(*IPNetNode).Value, found.(*IPNetNode).Value != nil
 }

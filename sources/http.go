@@ -263,6 +263,13 @@ func (srcFile *HTTPFile) Open() (reader io.Reader, err error) {
 
 func (srcFile *HTTPFile) Name() string {
 	if srcFile.name == "" {
+		disposition := srcFile.response.Header.Get("content-disposition")
+		if len(disposition) > 0 {
+			filename := strings.Split(disposition, "filename=")
+			if len(filename) > 1 {
+				return strings.Trim(filename[1], "\"'")
+			}
+		}
 		return path.Base(srcFile.url.String())
 	} else {
 		return srcFile.name
