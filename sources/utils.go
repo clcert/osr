@@ -9,7 +9,7 @@ import (
 	"path"
 )
 
-func executeQueries(server *remote.Server, remotePath string, queryFiles query.Queries, params utils.Params) error {
+func executeQueries(server *remote.Server, remotePath string, queryFiles query.Configs, params utils.Params) error {
 	db, err := databases.GetPostgresReader()
 	if err != nil {
 		return err
@@ -25,6 +25,7 @@ func executeQueries(server *remote.Server, remotePath string, queryFiles query.Q
 			// TODO: Log this
 			continue
 		}
+		formatted := make(map[string]*query.Query, 0)
 		for _, aQuery := range queries {
 			outPath := path.Join(remotePath, aQuery.Name+".csv")
 			outFile, err := sftpClient.Create(outPath)
@@ -35,7 +36,8 @@ func executeQueries(server *remote.Server, remotePath string, queryFiles query.Q
 				return err
 			}
 			// Formatting query
-			aQuery = aQuery.Format(params)
+			aQuery = aQuery.Format(params, formatted)
+			formatted[aQuery.Name] = aQuery
 			chErr := aQuery.Export(db, outFile, false);
 			if <-chErr != nil {
 				if outFile != nil {

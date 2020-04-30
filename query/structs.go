@@ -2,14 +2,12 @@ package query
 
 // TODO comment all this file
 import (
+	"fmt"
 	"github.com/clcert/osr/logs"
 	"github.com/clcert/osr/utils"
 	"github.com/go-pg/pg"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 	"io"
-	"io/ioutil"
-	"path"
 )
 
 type File struct {
@@ -22,7 +20,12 @@ type Query struct {
 	SQL         string `yaml:"query"`
 }
 
-type QueryConfig struct {
+type 	FormatArgs struct {
+	*utils.FormatArgs
+	Queries map[string]*Query
+}
+
+type Config struct {
 	Path      string
 	Whitelist []string
 	Params    utils.Params
@@ -30,10 +33,24 @@ type QueryConfig struct {
 
 // Defines a query file configuration.
 // It is composed of a filename (with its path from the config folder) and a list of queries to execute.
-type Queries []*QueryConfig
+type Configs []*Config
 
-func (config *QueryConfig) Open() ([]*Query, error) {
-	return OpenFile(config.Path, config.Whitelist, config.Params)
+func (config *Config) Open() (map[string]*Query, error) {
+	queries, err := OpenFile(config.Path, config.Params)
+	if err != nil {
+		return nil, err
+	}
+	whitelisted := make(map[string]*Query)
+	if len(config.Whitelist) > 0 {
+		for _, queryName := range config.Whitelist {
+			if query, ok := queries[queryName]; ok {
+				whitelisted[queryName] = query
+			}
+		}
+	} else {
+		whitelisted = queries
+	}
+	return whitelisted, nil
 }
 
 func (entry *Query) Execute(db *pg.DB, params ...interface{}) (pg.Result, error) {
@@ -69,43 +86,12 @@ func (entry *Query) Export(db *pg.DB, file io.Writer, headers bool) chan error {
 	return chErr
 }
 
-// Opens a query file and returns the queries specified in whitelist
-func OpenFile(queryFilename string, whitelist []string, params utils.Params) ([]*Query, error) {
-	if params == nil {
-		params = make(utils.Params)
-	}
-	queryFile := &File{}
-	filepath, err := GetQueriesPath()
-	if err != nil {
-		return nil, err
-	}
-	file, err := ioutil.ReadFile(path.Join(filepath, queryFilename))
-	if err != nil {
-		return nil, err
-	}
-	err = yaml.Unmarshal(file, queryFile)
-	if err != nil {
-		return nil, err
-	}
-	queries := make([]*Query, 0)
-	whitelistMap := make(map[string]struct{})
-	for _, whitelisted := range whitelist {
-		whitelistMap[whitelisted] = struct{}{}
-	}
-	for _, query := range queryFile.Queries {
-		if _, ok := whitelistMap[query.Name]; ok || len(whitelistMap) == 0 {
-			queries = append(queries, query.Format(params))
-		}
-	}
-	return queries, nil
-}
-
-// Creates a new Queries instance with the edited fields.
-func (queries Queries) Format(params utils.Params) Queries {
-	newList := make(Queries, len(queries))
+// Creates a new Configs instance with the edited fields.
+func (queries Configs) Format(params utils.Params) Configs {
+	newList := make(Configs, len(queries))
 	for i, queryConfig := range queries {
 		newParams := params.Join(queryConfig.Params)
-		newList[i] = &QueryConfig{
+		newList[i] = &Config{
 			Path:      params.FormatString(queryConfig.Path),
 			Params:    newParams,
 			Whitelist: params.FormatStringArray(queryConfig.Whitelist),
@@ -115,22 +101,34 @@ func (queries Queries) Format(params utils.Params) Queries {
 }
 
 // Creates a new Query instance with the edited fields.
-func (entry *Query) Format(params utils.Params) *Query {
-	return &Query{
+func (entry *Query) Format(params utils.Params, queries map[string]*Query) *Query {
+	q := &Query{
 		Name:        params.FormatString(entry.Name),
 		Description: params.FormatString(entry.Description),
-		SQL:         params.FormatString(entry.SQL),
 	}
+	q.SQL = formatQuery(params, entry, queries)
+	return q
 }
 
 func (file *File) Format(params utils.Params) *File {
 	newFile := &File{
-		Queries: make([]*Query, len(file.Queries)),
+		Queries: make([]*Query, 0),
 	}
+	queries := make(map[string]*Query)
 	if file.Queries != nil {
-		for i, query := range file.Queries {
-			newFile.Queries[i] = query.Format(params)
+		for _, query := range file.Queries {
+			newQuery := query.Format(params, queries)
+			queries[newQuery.Name] = newQuery
+			newFile.Queries = append(newFile.Queries, newQuery)
 		}
 	}
 	return newFile
+}
+
+// Query returns a query already parsed in the file (defined before)
+func (args *FormatArgs) Query(name string) string {
+	if _, ok := args.Queries[name]; !ok {
+		return ""
+	}
+	return fmt.Sprintf("(%s)",args.Queries[name].SQL)
 }

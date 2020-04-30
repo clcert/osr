@@ -14,7 +14,7 @@ var queries []string
 var headers bool
 
 func init() {
-	RawQueryCmd.Flags().StringSliceVarP(&inFiles, "input-files", "i", []string{}, "Input folder absolute path.")
+	RawQueryCmd.Flags().StringSliceVarP(&inFiles, "input-files", "i", []string{}, "Input files absolute path.")
 	RawQueryCmd.Flags().StringVarP(&outFolder, "output-folder", "o", "./", "Output folder absolute path.")
 	RawQueryCmd.Flags().StringSliceVarP(&queries, "queries", "q", []string{}, "whitelisted query names. Default is all.")
 	

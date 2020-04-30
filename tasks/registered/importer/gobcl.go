@@ -3,6 +3,7 @@ package importer
 import (
 	"github.com/clcert/osr/models"
 	"github.com/clcert/osr/tasks"
+	"github.com/clcert/osr/tasks/processes/importer/gobcl/gob_domains"
 )
 
 

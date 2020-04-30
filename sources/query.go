@@ -16,7 +16,7 @@ import (
 // QueryListConfig defines the configuration that a Query Source uses
 type QueryListConfig struct {
 	Path    string        // Virtual Path
-	Queries query.Queries // List of queries to execute and upload to the Path folder
+	Queries query.Configs // List of queries to execute and upload to the Path folder
 }
 
 // QuerySource represents a source that is a group of sql queries.

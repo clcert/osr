@@ -18,7 +18,7 @@ type SFTPConfig struct {
 	ServerName string        // Name of the server as declared on OSR config
 	Path       string        // Path where the process will start to look for the entries
 	Script     string        // Local script Path. This script will be uploaded to Path.
-	Queries    query.Queries // Saved Queries on files on queries folder.
+	Queries    query.Configs // Saved Queries on files on queries folder.
 	Filter     *FilterConfig // Filter configuration
 }
 

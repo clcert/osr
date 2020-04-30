@@ -1,4 +1,4 @@
-package asns
+package gob_domains
 
 import (
 	"github.com/PuerkitoBio/goquery"

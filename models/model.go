@@ -16,8 +16,8 @@ import (
 
 // ModelConfig defines a configuration list in
 type ModelConfig struct {
-	BeforeCreate query.Queries // Statements to execute before model creation
-	AfterCreate  query.Queries // Statements to execute after model creation
+	BeforeCreate query.Configs // Statements to execute before model creation
+	AfterCreate  query.Configs // Statements to execute after model creation
 }
 
 // Model defines abstractly a new model in the application.
