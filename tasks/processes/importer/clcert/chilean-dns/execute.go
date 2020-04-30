@@ -8,9 +8,10 @@ import (
 // This function reads a remote server and savers all the
 // results contained in folders with a signal empty file.
 func Execute(args *tasks.Context) error {
-	skipImport, err := strconv.ParseBool(args.Params["onlyIPASN"])
-	if err != nil {
-		skipImport = false
+	skipImport := false
+	onlyIPASN, ok := args.Params["onlyIPASN"]
+	if ok {
+		skipImport, _ = strconv.ParseBool(onlyIPASN)
 	}
 
 	if !skipImport {

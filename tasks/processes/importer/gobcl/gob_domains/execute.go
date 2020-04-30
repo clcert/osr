@@ -1,85 +1,54 @@
 package gob_domains
 
 import (
-	"github.com/PuerkitoBio/goquery"
 	"github.com/clcert/osr/tasks"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/tchap/go-patricia.v2/patricia"
 	"net/url"
-)
-
-const (
-	publicServiceSelector = "a.service-item"
-	regionSelector        = "a.region-item"
-	ministrySelector      = "a.ministry-item"
-	buttonSelector        = "div.profile_buttons > a"
-	communeSelector       = ".commune > article > a.text-red"
 )
 
 func Execute(ctx *tasks.Context) error {
 	source := ctx.Sources[0]
 	saver := ctx.Savers[0]
+	blacklist := getBlacklist(ctx)
 	for {
 		page := source.Next()
 		if page == nil {
 			break
 		}
 
-		// "Instituciones" root page
+		// root stackItem
 		body, err := page.Open()
 		if err != nil {
 			return err
 		}
-		defer page.Close()
-		// Load the HTML document
-		doc, err := goquery.NewDocumentFromReader(body)
-		if err != nil {
-			return err
-		}
-		ctx.Log.Info("Importing public services urls...")
-		addDomainsFromSelector(doc, publicServiceSelector, saver, ctx)
-		ctx.Log.Info("Done importing public services urls...")
 
 		// parsing process url
-		rootURL, err := url.Parse(ctx.Process.URL)
+		rootURL, err := url.Parse(page.Path()) // It should be an URL
 		if err != nil {
 			return err
 		}
-		ctx.Log.Info("Importing ministry urls...")
-		ministrySites := getSelectorURLs(doc, rootURL, ministrySelector)
-		for _, site := range ministrySites {
-			if err := addDomainsFromURL(site, buttonSelector, saver, ctx); err != nil {
-				ctx.Log.WithFields(logrus.Fields{
-					"url": site.String(),
-				}).Error("cannot add domains from ministry site: %s", err)
-			}
-			ctx.Log.WithFields(logrus.Fields{
-				"url": site.String(),
-			}).Info("done with this URL!")
-		}
-		ctx.Log.Info("Done importing ministry urls...")
 
-		ctx.Log.Info("Importing region urls...")
-		regionSites := getSelectorURLs(doc, rootURL, regionSelector)
-		for _, site := range regionSites {
-			if err := addDomainsFromURL(site, buttonSelector, saver, ctx); err != nil {
-				ctx.Log.WithFields(logrus.Fields{
-					"url": site.String(),
-				}).Error("cannot add domains from ministry site: %s", err)
-			}
-			ctx.Log.WithFields(logrus.Fields{
-				"url": site.String(),
-			}).Info("done with this URL!")
-			if err := addDomainsFromURL(site, communeSelector, saver, ctx); err != nil {
-				ctx.Log.WithFields(logrus.Fields{
-					"url": site.String(),
-				}).Error("cannot add domains from region site: %s", err)
-			}
-			ctx.Log.WithFields(logrus.Fields{
-				"url": site.String(),
-			}).Info("done with this URL!")
+		// creating Context
+		findCtx := &findContext{
+			taskCtx:   ctx,
+			trie:      patricia.NewTrie(),
+			saver:     saver,
+			blacklist: blacklist,
+			stack:     make([]*stackItem, 0),
 		}
-		ctx.Log.Info("Done importing region urls...")
-
+		findCtx.stack = append(findCtx.stack, &stackItem{Closer: page, Reader: body, url: rootURL})
+		findCtx.trie.Set(patricia.Prefix(rootURL.String()), struct{}{})
+		checked := 0
+		for len(findCtx.stack) > 0 {
+			item := findCtx.stack[len(findCtx.stack) - 1]
+			findCtx.stack = findCtx.stack[:len(findCtx.stack) - 1]
+			processPage(item, rootURL, findCtx)
+			checked++
+		}
+		findCtx.taskCtx.Log.WithFields(logrus.Fields{
+			"rootURL": rootURL.String(),
+		}).Infof("Checked %d pages", checked)
 	}
 	return nil
 }

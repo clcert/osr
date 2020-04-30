@@ -138,10 +138,6 @@ func (source *ScriptSource) Reset() {
 }
 
 func (source *ScriptSource) Close() error {
-	err := source.file.Close()
-	if err != nil {
-		return err
-	}
 	return source.server.Close()
 }
 
@@ -175,8 +171,8 @@ func (srcFile *ScriptFile) Open() (io.Reader, error) {
 	if err != nil {
 		return nil, err
 	}
-	sshSession.Stderr = srcFile.source.log.Out
-	err = sshSession.Start("cd " + path.Dir(srcFile.script) + "; ./" + path.Base(srcFile.script))
+	srcFile.session.Stderr = srcFile.source.log.Out
+	err = srcFile.session.Start("cd " + path.Dir(srcFile.script) + "; ./" + path.Base(srcFile.script))
 	if err != nil {
 		return nil, err
 	}
@@ -198,5 +194,10 @@ func (srcFile *ScriptFile) Path() string {
 }
 
 func (srcFile *ScriptFile) Close() error {
+	if err := srcFile.session.Close(); err != nil {
+		if err != io.EOF {
+			return err
+		}
+	}
 	return srcFile.session.Wait()
 }

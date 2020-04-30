@@ -6,7 +6,6 @@ import (
 	"github.com/clcert/osr/tasks/processes/importer/gobcl/gob_domains"
 )
 
-
 func init() {
 	tasks.Registered.Register(
 		&tasks.Process{
@@ -16,7 +15,7 @@ func init() {
 			URL:             "https://www.gob.cl/instituciones/",
 			Execute:         gob_domains.Execute,
 			DefaultSourceID: models.MaxMind,
-			NumSources:      2,
+			NumSources:      1,
 			NumSavers:       1,
 		},
 	)
