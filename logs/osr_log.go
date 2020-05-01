@@ -1,9 +1,11 @@
 package logs
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"time"
 )
@@ -21,11 +23,11 @@ func NewLog(name string) (*OSRLog, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = os.MkdirAll(logsPath, 0744)
+	fileName := filepath.Join(logsPath, createLogName(name))
+	err = os.MkdirAll(path.Dir(fileName), 0744)
 	if err != nil {
 		return nil, err
 	}
-	fileName := filepath.Join(logsPath, createLogName(name))
 	f, err := os.Create(fileName)
 	if err != nil {
 		return nil, err
@@ -44,6 +46,7 @@ func (log *OSRLog) GetAttachments() []string {
 
 // createLogName creates a log name, with the date and time of the log in the name.
 func createLogName(name string) string {
-	dateLayout := "2006-01-02_150405.000"
-	return name + "_" + time.Now().Format(dateLayout) + ".log"
+	dateLayout := "2006-01-02"
+	timeLayout := "150405.000"
+	return fmt.Sprintf("%s/%s_%s.log", time.Now().Format(dateLayout), time.Now().Format(timeLayout), name)
 }
