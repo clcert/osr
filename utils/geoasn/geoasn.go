@@ -31,7 +31,7 @@ func NewClassifier(db *pg.DB, source models.DataSourceID) (classifier *Classifie
 }
 
 // GetGeoASN returns the Geogrhaphical and ASN data for an specific IP
-func (classifier *Classifier) GetGeoASN(ip net.IP) (int, int, error) {
+func (classifier *Classifier) GetGeoASN(ip net.IP) (geo, asn int, err error) {
 	geoData, ok := classifier.GeoTree.GetIPData(ip)
 	if !ok {
 		return 0, 0, fmt.Errorf("cannot get IP Geodata for IP %s", ip)

@@ -250,7 +250,7 @@ func GetIpAsnCountries(args *tasks.Context) error {
 	args.Log.Info("Information acquired! now saving...")
 
 	for _, dnsRR := range dnsRRs {
-		asnID, countryID, err := classifier.GetGeoASN(dnsRR.IPValue)
+		countryID, asnID, err := classifier.GetGeoASN(dnsRR.IPValue)
 		ipAsnCountry := &models.IpAsnCountry{
 			TaskID:           args.GetTaskID(),
 			SourceID:         args.GetSourceID(),
