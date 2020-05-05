@@ -96,24 +96,27 @@ func OpenFile(queryFilename string, params utils.Params) (map[string]*Query, err
 	}
 	queries := make(map[string]*Query, 0)
 	for _, query := range queryFile.Queries {
-		newQuery := query.Format(params, queries)
+		newQuery, err := query.Format(params, queries)
+		if err != nil {
+			return nil, err
+		}
 		queries[newQuery.Name] = newQuery
 	}
 	return queries, nil
 }
 
 // formatQuery formats a query using the queries formatted until now
-func formatQuery(params utils.Params, query *Query, queries map[string]*Query) string {
+func formatQuery(params utils.Params, query *Query, queries map[string]*Query) (string, error) {
 	tmpl, err := template.New(query.Name).Parse(query.SQL)
 	if err != nil {
-		return ""
+		return "", err
 	}
 	var buf strings.Builder
 	if err := tmpl.Execute(&buf, &FormatArgs{
 		FormatArgs: utils.NewFormatArgs(params),
 		Queries:    queries,
 	}); err != nil {
-		return ""
+		return "", err
 	}
-	return buf.String()
+	return buf.String(), nil
 }

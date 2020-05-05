@@ -20,7 +20,7 @@ type Query struct {
 	SQL         string `yaml:"query"`
 }
 
-type 	FormatArgs struct {
+type FormatArgs struct {
 	*utils.FormatArgs
 	Queries map[string]*Query
 }
@@ -62,6 +62,7 @@ func (entry *Query) Export(db *pg.DB, file io.Writer, headers bool) chan error {
 	logs.Log.WithFields(logrus.Fields{
 		"query":       entry.Name,
 		"description": entry.Description,
+		"SQL":         entry.SQL,
 	}).Info("Executing query...")
 
 	stmt := "COPY (" + entry.SQL + ") TO STDOUT WITH CSV"
@@ -101,28 +102,35 @@ func (queries Configs) Format(params utils.Params) Configs {
 }
 
 // Creates a new Query instance with the edited fields.
-func (entry *Query) Format(params utils.Params, queries map[string]*Query) *Query {
+func (entry *Query) Format(params utils.Params, queries map[string]*Query) (*Query, error) {
 	q := &Query{
 		Name:        params.FormatString(entry.Name),
 		Description: params.FormatString(entry.Description),
 	}
-	q.SQL = formatQuery(params, entry, queries)
-	return q
+	sql, err := formatQuery(params, entry, queries)
+	if err != nil {
+		return nil, err
+	}
+	q.SQL = sql
+	return q, nil
 }
 
-func (file *File) Format(params utils.Params) *File {
+func (file *File) Format(params utils.Params) (*File, error) {
 	newFile := &File{
 		Queries: make([]*Query, 0),
 	}
 	queries := make(map[string]*Query)
 	if file.Queries != nil {
 		for _, query := range file.Queries {
-			newQuery := query.Format(params, queries)
+			newQuery, err := query.Format(params, queries)
+			if err != nil {
+				return nil, err
+			}
 			queries[newQuery.Name] = newQuery
 			newFile.Queries = append(newFile.Queries, newQuery)
 		}
 	}
-	return newFile
+	return newFile, nil
 }
 
 // Query returns a query already parsed in the file (defined before)
@@ -130,5 +138,5 @@ func (args *FormatArgs) Query(name string) string {
 	if _, ok := args.Queries[name]; !ok {
 		return ""
 	}
-	return fmt.Sprintf("(%s)",args.Queries[name].SQL)
+	return fmt.Sprintf("(%s)", args.Queries[name].SQL)
 }

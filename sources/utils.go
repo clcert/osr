@@ -36,7 +36,10 @@ func executeQueries(server *remote.Server, remotePath string, queryFiles query.C
 				return err
 			}
 			// Formatting query
-			aQuery = aQuery.Format(params, formatted)
+			aQuery, err = aQuery.Format(params, formatted)
+			if err != nil {
+				return err
+			}
 			formatted[aQuery.Name] = aQuery
 			chErr := aQuery.Export(db, outFile, false);
 			if <-chErr != nil {
