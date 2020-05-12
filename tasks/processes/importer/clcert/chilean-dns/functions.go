@@ -42,8 +42,9 @@ func getAccessibleIPs(source sources.Source, args *tasks.Context) (accessibleMap
 
 			continue
 		}
-
-		accessible[nameType] = make(map[string]struct{})
+		if _, ok := accessible[nameType]; !ok {
+			accessible[nameType] = make(map[string]struct{})
+		}
 		args.Log.WithFields(logrus.Fields{
 			"name":   file.Name(),
 			"prefix": splittedName,

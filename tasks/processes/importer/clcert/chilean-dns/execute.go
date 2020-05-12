@@ -5,8 +5,6 @@ import (
 	"strconv"
 )
 
-// This function reads a remote server and savers all the
-// results contained in folders with a signal empty file.
 func Execute(args *tasks.Context) error {
 	skipImport := false
 	onlyIPASN, ok := args.Params["onlyIPASN"]
