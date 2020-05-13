@@ -83,6 +83,7 @@ func Execute(ctx *tasks.Context) (err error) {
 				"minDate": minDate,
 				"maxDate": maxDate,
 			}).Info("Skipping this task because is outside the limits")
+			continue
 		}
 		ctx.Log.WithFields(logrus.Fields{
 			"taskID": task.ID,
