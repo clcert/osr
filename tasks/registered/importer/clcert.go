@@ -4,6 +4,7 @@ import (
 	"github.com/clcert/osr/models"
 	"github.com/clcert/osr/tasks"
 	chilean_dns "github.com/clcert/osr/tasks/processes/importer/clcert/chilean-dns"
+	fix_accessible "github.com/clcert/osr/tasks/processes/importer/clcert/chilean-dns/fix-accessible"
 	"github.com/clcert/osr/tasks/processes/importer/clcert/darknet"
 	domain_categories "github.com/clcert/osr/tasks/processes/importer/clcert/domain-categories"
 	grabber_protocol_scan "github.com/clcert/osr/tasks/processes/importer/clcert/grabber-protocol-scan"
@@ -21,6 +22,16 @@ func init() {
 			Execute:         chilean_dns.Execute,
 			NumSources:      2,
 			NumSavers:       1,
+		},
+		&tasks.Process{
+			Name:            "Fix accessible in Chilean DNS scan",
+			Command:         "import/clcert-chilean-dns/fix-accessible",
+			Description:     "Fixes currently defined Accessible flag using a custom directory with ZMAP scans",
+			URL:             "",
+			DefaultSourceID: models.CLCERT,
+			Execute:         fix_accessible.Execute,
+			NumSources:      1,
+			NumSavers:       0,
 		},
 		&tasks.Process{
 			Name:            "CLCERT Darknet",

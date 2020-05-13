@@ -15,22 +15,27 @@ import (
 	"io"
 	"net"
 	"strings"
+	"time"
 )
 
 type accessibleMap map[models.RRType]map[string]struct{}
+type accessibleDateMap map[string]accessibleMap
+
+const DayFormat = "2006-01-02"
 
 // Returns a list of the accessible IPs, obtained from Zmap port scans.
 // The files are located in the folder "basepath" and have the following
 // structure as name: %s_port_%d.txt, where %s is the name of the scan and
 // %d is the port scanned.
-func getAccessibleIPs(source sources.Source, args *tasks.Context) (accessibleMap, error) {
-	var accessible = make(accessibleMap)
+func GetAccessibleIPs(source sources.Source, args *tasks.Context) (accessibleDateMap, error) {
+	var accessible = make(accessibleDateMap)
 	var nameType models.RRType
 	for {
 		file := source.Next()
 		if file == nil {
 			break
 		}
+		date := getFileDate(file)
 		splittedName := strings.Split(file.Name(), "_port_")
 		splittedPrefix := strings.Split(splittedName[0], "_")
 		nameType = models.StringToRRType(splittedPrefix[len(splittedPrefix)-1])
@@ -42,12 +47,15 @@ func getAccessibleIPs(source sources.Source, args *tasks.Context) (accessibleMap
 
 			continue
 		}
-		if _, ok := accessible[nameType]; !ok {
-			accessible[nameType] = make(map[string]struct{})
+		if _, ok := accessible[date]; !ok {
+			accessible[date] = make(map[models.RRType]map[string]struct{})
+		}
+		if _, ok := accessible[date][nameType]; !ok {
+			accessible[date][nameType] = make(map[string]struct{})
 		}
 		args.Log.WithFields(logrus.Fields{
-			"name":   file.Name(),
-			"prefix": splittedName,
+			"path":   file.Path(),
+			"date": date,
 		}).Info("Importing file")
 		reader, err := file.Open()
 		if err != nil {
@@ -69,7 +77,7 @@ func getAccessibleIPs(source sources.Source, args *tasks.Context) (accessibleMap
 					return accessible, err
 				}
 			}
-			accessible[nameType][strings.TrimSpace(line)] = struct{}{}
+			accessible[date][nameType][strings.TrimSpace(line)] = struct{}{}
 		}
 	}
 	return accessible, nil
@@ -78,7 +86,7 @@ func getAccessibleIPs(source sources.Source, args *tasks.Context) (accessibleMap
 // This function reads a Mercury results file in JSON and
 // returns a list of DnsRRs representing each scan.
 // It ignores "error" scans.
-func getScanEntries(source sources.Source, saver savers.Saver, accessible accessibleMap, args *tasks.Context) error {
+func getScanEntries(source sources.Source, saver savers.Saver, accessibleDate accessibleDateMap, args *tasks.Context) error {
 	privateNetworks, err := utils.GetPrivateNetworks()
 	if err != nil {
 		args.Log.Error("Error getting private networks")
@@ -90,7 +98,12 @@ func getScanEntries(source sources.Source, saver savers.Saver, accessible access
 		if file == nil {
 			break
 		}
-		err := readFile(file, saver, accessible, args, privateNetworks)
+		date := getFileDate(file)
+		accessible, ok := accessibleDate[date]
+		if !ok {
+			continue
+		}
+		err := readFile(file, saver, accessible , args, privateNetworks)
 		if err != nil {
 			args.Log.WithFields(logrus.Fields{
 				"name": file.Name(),
@@ -133,7 +146,10 @@ func readFile(file sources.Entry, saver savers.Saver, accessible accessibleMap, 
 			return err
 		}
 		if result.Status == ERROR {
-			// TODO: log in debug mode?
+			args.Log.WithFields(logrus.Fields{
+				"message": result.Error,
+				"domain":  result.Url,
+			}).Error("Error when scanning")
 			continue
 		}
 		subdomain, domain, tld, err := utils.SplitDomain(result.Url)
@@ -206,7 +222,7 @@ func parseScan(args *tasks.Context) error {
 	mercurySource := args.Sources[0]
 	ipsSource := args.Sources[1]
 	args.Log.Info("Getting accessible IPs from scan...")
-	accessible, err := getAccessibleIPs(ipsSource, args)
+	accessible, err := GetAccessibleIPs(ipsSource, args)
 	if err != nil {
 		args.Log.Error("Problems with getting accessible IPs")
 		return err
@@ -271,4 +287,17 @@ func GetIpAsnCountries(args *tasks.Context) error {
 	}
 
 	return nil
+}
+
+func getFileDate(file sources.Entry) string {
+	date := time.Now()
+	splitPath := strings.Split(file.Path(), "/")
+	if len(splitPath) >= 2 {
+		fileDate, err := time.Parse(DayFormat, splitPath[len(splitPath)-2])
+		if err == nil {
+			date = fileDate
+		}
+	}
+	// Now we know we can parse the value as a date, we return it as string
+	return date.Format(DayFormat)
 }

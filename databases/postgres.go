@@ -1,6 +1,7 @@
 package databases
 
 import (
+	"context"
 	"fmt"
 	"github.com/clcert/osr/logs"
 	"github.com/clcert/osr/utils"
@@ -8,6 +9,17 @@ import (
 	"github.com/sirupsen/logrus"
 	"strings"
 )
+
+type dbLogger struct { }
+
+func (d dbLogger) BeforeQuery(c context.Context, q *pg.QueryEvent) (context.Context, error) {
+	return c, nil
+}
+
+func (d dbLogger) AfterQuery(c context.Context, q *pg.QueryEvent) (context.Context, error) {
+	fmt.Println(q.FormattedQuery())
+	return c, nil
+}
 
 // NewPostgresUser creates a new postgres user using the given DB connection, with a given username and a list of default table and sequence permissions.
 // If the user already exists, it finishes with an error
@@ -88,12 +100,14 @@ func GetPostgresReader() (*pg.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	return pg.Connect(&pg.Options{
+	db :=  pg.Connect(&pg.Options{
 		Addr:     fmt.Sprintf("%s:%d", conf.Server, conf.Port),
 		User:     conf.Reader.Username,
 		Password: conf.Reader.Password,
 		Database: conf.DBName,
-	}), err
+	})
+	// db.AddQueryHook(dbLogger{})
+	return db, err
 }
 
 // GetPostgresWriter returns a pg.DB struct with a "connection" to a Postgres database
@@ -109,5 +123,6 @@ func GetPostgresWriter() (*pg.DB, error) {
 		Password: conf.Writer.Password,
 		Database: conf.DBName,
 	})
+	// 	db.AddQueryHook(dbLogger{})
 	return db, err
 }
