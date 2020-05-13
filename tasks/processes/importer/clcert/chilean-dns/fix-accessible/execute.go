@@ -46,6 +46,8 @@ func Execute(ctx *tasks.Context) (err error) {
 		return fmt.Errorf("empty accessible date list")
 	}
 	ctx.Log.WithFields(logrus.Fields{
+		"minDate": minDate,
+		"maxDate": maxDate,
 	}).Info("Finding all tasks IDs from DNS RRs")
 	// Finding all tasks IDs from DNS RRs
 	taskList, err := getTasksWithDate(writer)
