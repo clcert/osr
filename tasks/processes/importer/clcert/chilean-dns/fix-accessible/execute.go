@@ -104,7 +104,7 @@ func Execute(ctx *tasks.Context) (err error) {
 				ctx.Log.WithFields(logrus.Fields{
 					"taskID":            task.ID,
 					"date":              date,
-					"accessible_length": len(accessibleDate),
+					"accessible_length": len(accessibleRR),
 				}).Info("Skipping accessible state for RR without IPs")
 				continue
 			}
@@ -112,7 +112,7 @@ func Execute(ctx *tasks.Context) (err error) {
 				"taskID":            task.ID,
 				"date":              date,
 				"RR":                rrType,
-				"accessible_length": len(accessibleDate),
+				"accessible_length": len(accessibleRR),
 			}).Info("Updating accessible state for this RR")
 			ips := make([]string, 0, len(accessible))
 			for ipStr, _ := range accessibleRR {
