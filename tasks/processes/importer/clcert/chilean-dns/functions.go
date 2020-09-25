@@ -18,8 +18,8 @@ import (
 	"time"
 )
 
-type accessibleMap map[models.RRType]map[string]struct{}
-type accessibleDateMap map[string]accessibleMap
+type AccessibleMap map[models.RRType]map[string]struct{}
+type AccessibleDateMap map[string]AccessibleMap
 
 const DayFormat = "2006-01-02"
 
@@ -27,8 +27,8 @@ const DayFormat = "2006-01-02"
 // The files are located in the folder "basepath" and have the following
 // structure as name: %s_port_%d.txt, where %s is the name of the scan and
 // %d is the port scanned.
-func GetAccessibleIPs(source sources.Source, args *tasks.Context) (accessibleDateMap, error) {
-	var accessible = make(accessibleDateMap)
+func GetAccessibleIPs(source sources.Source, args *tasks.Context) (AccessibleDateMap, error) {
+	var accessible = make(AccessibleDateMap)
 	var nameType models.RRType
 	for {
 		file := source.Next()
@@ -86,7 +86,7 @@ func GetAccessibleIPs(source sources.Source, args *tasks.Context) (accessibleDat
 // This function reads a Mercury results file in JSON and
 // returns a list of DnsRRs representing each scan.
 // It ignores "error" scans.
-func getScanEntries(source sources.Source, saver savers.Saver, accessibleDate accessibleDateMap, args *tasks.Context) error {
+func getScanEntries(source sources.Source, saver savers.Saver, accessibleDate AccessibleDateMap, args *tasks.Context) error {
 	privateNetworks, err := utils.GetPrivateNetworks()
 	if err != nil {
 		args.Log.Error("Error getting private networks")
@@ -113,7 +113,7 @@ func getScanEntries(source sources.Source, saver savers.Saver, accessibleDate ac
 	return nil
 }
 
-func readFile(file sources.Entry, saver savers.Saver, accessible accessibleMap, args *tasks.Context, privateNetworks utils.NetList) error {
+func readFile(file sources.Entry, saver savers.Saver, accessible AccessibleMap, args *tasks.Context, privateNetworks utils.NetList) error {
 	args.Log.WithFields(logrus.Fields{
 		"name": file.Name(),
 	}).Info("Importing file")
