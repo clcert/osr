@@ -3,13 +3,15 @@ package savers
 import (
 	"encoding/csv"
 	"fmt"
+	"os"
+	"path"
+	"strings"
+	"sync"
+
 	"github.com/clcert/osr/logs"
 	"github.com/clcert/osr/remote"
 	"github.com/clcert/osr/utils"
 	"github.com/pkg/sftp"
-	"path"
-	"strings"
-	"sync"
 )
 
 // TODO: More logging on this source
@@ -24,23 +26,24 @@ type SFTPConfig struct {
 // SFTPFileConfig defines a configuration for a specific file or outID.
 type SFTPFileConfig struct {
 	FileName string   // Name of the file. It should be unique because all the files are saved on the same folder
+	Append   bool     // If true, the file is appended if it exists
 	Fields   []string // Fields to save. TODO: make this case insensitive.
 }
 
 // SFTPSaver defines a saver which saves the objects in a CSV file, on a specific folder in a remote server.
 type SFTPSaver struct {
-	*SFTPConfig                     // SFTPConfig related to the saver
-	sync.Mutex                      // A mutex for map operations
-	name       string               // Name for the saver instance
-	params     utils.Params         // Parameters configured in file
-	server     *remote.Server       //the server object
-	sftpClient *sftp.Client         // The sftp Connection
-	outFiles   map[string]*SFTPFile // A map with file writers, where the key is the outID.
-	finished   chan bool            // True if channel finished parsing files
-	objects    chan Savable         // List of objects to save
-	inserted   int                  // number of inserted data rows
-	errors     []error              // List of errors
-	log        *logs.OSRLog         // Saver log
+	*SFTPConfig                      // SFTPConfig related to the saver
+	sync.Mutex                       // A mutex for map operations
+	name        string               // Name for the saver instance
+	params      utils.Params         // Parameters configured in file
+	server      *remote.Server       //the server object
+	sftpClient  *sftp.Client         // The sftp Connection
+	outFiles    map[string]*SFTPFile // A map with file writers, where the key is the outID.
+	finished    chan bool            // True if channel finished parsing files
+	objects     chan Savable         // List of objects to save
+	inserted    int                  // number of inserted data rows
+	errors      []error              // List of errors
+	log         *logs.OSRLog         // Saver log
 }
 
 // SFTPFile defines a specific file where to save the objects.
@@ -191,7 +194,7 @@ func (saver *SFTPSaver) writeToFile(savable Savable) {
 	for i, field := range outConfig.Fields {
 		fieldValue, ok := allFields[field]
 		if ok {
-		values[i] = fmt.Sprintf("%v", fieldValue)
+			values[i] = fmt.Sprintf("%v", fieldValue)
 		}
 	}
 	err := file.writer.Write(values)
@@ -216,7 +219,14 @@ func (saver *SFTPSaver) createOutFile(name string, config *SFTPFileConfig) error
 		return err
 	}
 	// Create file in remote
-	aFile, err := saver.sftpClient.Create(path.Join(saver.Path, config.FileName))
+	var aFile *sftp.File
+	if config.Append {
+		// Append on it if it exists
+		aFile, err = saver.sftpClient.OpenFile(path.Join(saver.Path, config.FileName), os.O_RDWR|os.O_APPEND|os.O_CREATE)
+	} else {
+		// Overwrite the file
+		aFile, err = saver.sftpClient.Create(path.Join(saver.Path, config.FileName))
+	}
 	if err != nil {
 		return err
 	}
