@@ -38,11 +38,11 @@ var ReportEntryModel = Model{
 type ReportEntry struct {
 	TaskID       int               `pg:",type:bigint"` // Number of the importer session
 	Task         *Task             `pg:"rel:has-one"`  // Task structure
-	SourceID     DataSourceID      `pg:",pk,notnull"`  // A listed source for the data.
+	SourceID     DataSourceID      `pg:",pk,use_zero"` // A listed source for the data.
 	Source       *Source           `pg:"rel:has-one"`  // Source pointer
-	ReportTypeID ReportTypeID      `pg:",pk,notnull"`  // Type of report
+	ReportTypeID ReportTypeID      `pg:",pk,use_zero"` // Type of report
 	ReportType   *ReportType       `pg:"rel:has-one"`  // Type of report
-	Date         time.Time         `pg:",pk,notnull"`  // Date of the scan
-	IP           net.IP            `pg:",pk,notnull"`  // Source Address (scanned device)
+	Date         time.Time         `pg:",pk,use_zero"` // Date of the scan
+	IP           net.IP            `pg:",pk,use_zero"` // Source Address (scanned device)
 	Properties   map[string]string // Report extra metadata
 }

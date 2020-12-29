@@ -16,10 +16,10 @@ type Domain struct {
 	TaskID           int              // Id of the task set
 	Task             *Task            `pg:"rel:has-one"` // Task structure
 	SourceID         DataSourceID     // A listed source for the data.
-	Source           *Source          `pg:"rel:has-one"`                   // Source pointer
-	Subdomain        string           `pg:",notnull,pk,type:varchar(255)"` // Subdomain(s) of the entry
-	Name             string           `pg:",pk,notnull,type:varchar(255)"` // name of the entry
-	TLD              string           `pg:",pk,notnull,type:varchar(255)"` // TLD of the entry
+	Source           *Source          `pg:"rel:has-one"`                    // Source pointer
+	Subdomain        string           `pg:",use_zero,pk,type:varchar(255)"` // Subdomain(s) of the entry
+	Name             string           `pg:",pk,use_zero,type:varchar(255)"` // name of the entry
+	TLD              string           `pg:",pk,use_zero,type:varchar(255)"` // TLD of the entry
 	RegistrationDate time.Time        // Date of registration of the domain
 	DeletionDate     time.Time        // Date of deletion of the domain.
 	Categories       []DomainCategory `pg:"many2many:domain_to_categories"` // Categories associated to a domain

@@ -20,40 +20,40 @@ var DarknetPacketModel = Model{
 // DarknetPacket represents the TCP/IP headers of a darknet packet.
 type DarknetPacket struct {
 	Hash       string       // Hash of the package, useful for repetition detection
-	TaskID     int          `pg:",notnull,type:bigint"` // ID of related task
-	Task       *Task        `pg:"rel:has-one"`          // Task oObject
-	SourceID   DataSourceID `pg:",pk,type:bigint"`      // ID of source
-	Source     *Source      `pg:"rel:has-one"`          // Source object
-	Count      uint32       `pg:",notnull,type:bigint"` // Number of received packets
-	Time       time.Time    `pg:",pk"`                  // Time of package reception
-	Ihl        uint32       `pg:",notnull"`
-	Tos        uint32       `pg:",notnull"`
-	Length     uint32       `pg:",notnull"`
-	Ipid       uint32       `pg:",notnull"`
-	Flags      string       `pg:",notnull"`
-	FragOffset uint32       `pg:",notnull"`
-	TTLMax     uint32       `pg:",notnull"`
-	TTLMin     uint32       `pg:",notnull"`
-	Protocol   string       `pg:",notnull"`
-	IPChecksum uint32       `pg:",notnull"`
+	TaskID     int          `pg:",use_zero,type:bigint"` // ID of related task
+	Task       *Task        `pg:"rel:has-one"`           // Task oObject
+	SourceID   DataSourceID `pg:",pk,type:bigint"`       // ID of source
+	Source     *Source      `pg:"rel:has-one"`           // Source object
+	Count      uint32       `pg:",use_zero,type:bigint"` // Number of received packets
+	Time       time.Time    `pg:",pk"`                   // Time of package reception
+	Ihl        uint32       `pg:",use_zero"`
+	Tos        uint32       `pg:",use_zero"`
+	Length     uint32       `pg:",use_zero"`
+	Ipid       uint32       `pg:",use_zero"`
+	Flags      string       `pg:",use_zero"`
+	FragOffset uint32       `pg:",use_zero"`
+	TTLMax     uint32       `pg:",use_zero"`
+	TTLMin     uint32       `pg:",use_zero"`
+	Protocol   string       `pg:",use_zero"`
+	IPChecksum uint32       `pg:",use_zero"`
 	SrcIP      net.IP       `pg:",pk"`
 	SrcPort    uint16       `pg:",pk,type:integer"`
 	DstIP      net.IP       `pg:",pk"`
 	DstPort    uint16       `pg:",pk,type:integer"`
-	Seq        uint64       `pg:",notnull"`
-	Ack        uint64       `pg:",notnull"`
-	DataOffset uint64       `pg:",notnull"`
-	Window     uint32       `pg:",notnull"`
-	Checksum   uint32       `pg:",pk,type:bigint,notnull"`
-	Urgent     uint32       `pg:",notnull"`
-	Fin        bool         `pg:",notnull"`
-	Syn        bool         `pg:",notnull"`
-	Rst        bool         `pg:",notnull"`
-	Psh        bool         `pg:",notnull"`
-	AckFlag    bool         `pg:",notnull"`
-	Urg        bool         `pg:",notnull"`
-	Ece        bool         `pg:",notnull"`
-	Cwr        bool         `pg:",notnull"`
+	Seq        uint64       `pg:",use_zero"`
+	Ack        uint64       `pg:",use_zero"`
+	DataOffset uint64       `pg:",use_zero"`
+	Window     uint32       `pg:",use_zero"`
+	Checksum   uint32       `pg:",pk,type:bigint,use_zero"`
+	Urgent     uint32       `pg:",use_zero"`
+	Fin        bool         `pg:",use_zero"`
+	Syn        bool         `pg:",use_zero"`
+	Rst        bool         `pg:",use_zero"`
+	Psh        bool         `pg:",use_zero"`
+	AckFlag    bool         `pg:",use_zero"`
+	Urg        bool         `pg:",use_zero"`
+	Ece        bool         `pg:",use_zero"`
+	Cwr        bool         `pg:",use_zero"`
 }
 
 // String shows a text representation of the package.

@@ -25,9 +25,9 @@ var SourceModel = Model{
 }
 
 type Source struct {
-	ID          DataSourceID `pg:",pk"`                        // Source Number
-	Name        string       `pg:",notnull,type:varchar(255)"` // Source name
-	URL         string       `pg:",type:varchar(512)"`         // Source URL
+	ID          DataSourceID `pg:",pk"`                         // Source Number
+	Name        string       `pg:",use_zero,type:varchar(255)"` // Source name
+	URL         string       `pg:",type:varchar(512)"`          // Source URL
 	Description string       // Source Description
 }
 

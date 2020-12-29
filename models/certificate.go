@@ -50,21 +50,21 @@ const (
 
 // PortScan represents an open protocol port on a machine with an specific IP in a specific time.
 type Certificate struct {
-	TaskID             int                     `pg:",notnull,type:bigint"`    // Protocol of the importer session
-	Task               *Task                   `pg:"rel:has-one"`             // Task structure
-	SourceID           DataSourceID            `pg:",pk,notnull,type:bigint"` // A listed source for the data.
-	Source             *Source                 `pg:"rel:has-one"`             // Source pointer
-	Date               time.Time               `pg:",pk,notnull"`             // Date of the scan
-	ScanIP             net.IP                  `pg:",pk"`                     // IP address used to scan the server
-	IP                 net.IP                  `pg:",pk"`                     // Address
-	PortNumber         uint16                  `pg:",pk,type:bigint"`         // Protocol number scanned
-	Port               *Port                   `pg:"rel:has-one"`             // Port object
-	Status             CertStatus              `pg:",notnull"`
-	KeySize            int                     `pg:",notnull"` // Key Size
-	ExpirationDate     time.Time               `pg:",notnull"` // Expiration Date
-	OrganizationName   string                  `pg:",notnull"` // Organization Name
-	OrganizationURL    string                  `pg:",notnull"` // Organization URL
-	Authority          string                  `pg:",notnull"` // Certificate Authority
-	SignatureAlgorithm x509.SignatureAlgorithm `pg:",notnull"` // Signature Algorithm
-	TLSProtocol        TLSProto                `pg:",notnull"` // TLS Protocol
+	TaskID             int                     `pg:",use_zero,type:bigint"`    // Protocol of the importer session
+	Task               *Task                   `pg:"rel:has-one"`              // Task structure
+	SourceID           DataSourceID            `pg:",pk,use_zero,type:bigint"` // A listed source for the data.
+	Source             *Source                 `pg:"rel:has-one"`              // Source pointer
+	Date               time.Time               `pg:",pk,use_zero"`             // Date of the scan
+	ScanIP             net.IP                  `pg:",pk"`                      // IP address used to scan the server
+	IP                 net.IP                  `pg:",pk"`                      // Address
+	PortNumber         uint16                  `pg:",pk,type:bigint"`          // Protocol number scanned
+	Port               *Port                   `pg:"rel:has-one"`              // Port object
+	Status             CertStatus              `pg:",use_zero"`
+	KeySize            int                     `pg:",use_zero"` // Key Size
+	ExpirationDate     time.Time               `pg:",use_zero"` // Expiration Date
+	OrganizationName   string                  `pg:",use_zero"` // Organization Name
+	OrganizationURL    string                  `pg:",use_zero"` // Organization URL
+	Authority          string                  `pg:",use_zero"` // Certificate Authority
+	SignatureAlgorithm x509.SignatureAlgorithm `pg:",use_zero"` // Signature Algorithm
+	TLSProtocol        TLSProto                `pg:",use_zero"` // TLS Protocol
 }

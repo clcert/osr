@@ -37,15 +37,15 @@ type PortScan struct {
 	tableName      struct{}     `pg:"port_scans,partition_by:RANGE(date)"` // Partitioning
 	TaskID         int          `pg:",type:bigint"`                        // Protocol of the importer session
 	Task           *Task        `pg:"rel:has-one"`                         // Task structure
-	SourceID       DataSourceID `pg:",pk,notnull,type:bigint"`             // A listed source for the data.
+	SourceID       DataSourceID `pg:",pk,use_zero,type:bigint"`            // A listed source for the data.
 	Source         *Source      `pg:"rel:has-one"`                         // Source pointer
-	Date           time.Time    `pg:",pk,notnull"`                         // Date of the scan
+	Date           time.Time    `pg:",pk,use_zero"`                        // Date of the scan
 	ScanIP         net.IP       `pg:",pk"`                                 // IP address used to scan the server
 	IP             net.IP       `pg:",pk"`                                 // Address
 	PortNumber     uint16       `pg:",pk,type:bigint"`                     // Protocol number scanned
-	Protocol       PortProtocol `pg:",pk,type:smallint,notnull"`
+	Protocol       PortProtocol `pg:",pk,type:smallint,use_zero"`
 	Port           *Port        `pg:"rel:has-one"`
-	ServiceActive  bool         `pg:",notnull,default:false"`
+	ServiceActive  bool         `pg:",use_zero,default:false"`
 	ServiceName    string
 	ServiceVersion string
 	ServiceExtra   string

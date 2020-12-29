@@ -33,7 +33,7 @@ type Task struct {
 	ID        int        // The unique Number of the task session
 	StartDate time.Time  // Task Session start date
 	EndDate   time.Time  // Task Session end date
-	Status    TaskStatus `pg:",notnull"` // Task session status
+	Status    TaskStatus `pg:",use_zero"` // Task session status
 }
 
 func (task *Task) GetStatus() string {

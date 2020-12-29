@@ -9,8 +9,8 @@ var ServiceModel = Model{
 
 // Service Info
 type Service struct {
-	ID       string `pg:",pk,notnull,type:varchar(255)"`
-	Vendor   string `pg:",pk,notnull,type:varchar(255)"`
-	Name     string `pg:",pk,notnull,type:varchar(255)"`
+	ID       string `pg:",pk,use_zero,type:varchar(255)"`
+	Vendor   string `pg:",pk,use_zero,type:varchar(255)"`
+	Name     string `pg:",pk,use_zero,type:varchar(255)"`
 	Comments string
 }

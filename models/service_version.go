@@ -11,8 +11,8 @@ var ServiceVersionModel = Model{
 
 // Service Version Timelines
 type ServiceVersion struct {
-	ServiceID string    `pg:",pk,notnull,type:varchar(255)"`
-	Version   string    `pg:",pk,notnull,type:varchar(255)"`
-	Date      time.Time `pg:",pk,notnull"`
+	ServiceID string    `pg:",pk,use_zero,type:varchar(255)"`
+	Version   string    `pg:",pk,use_zero,type:varchar(255)"`
+	Date      time.Time `pg:",pk,use_zero"`
 	Comments  string
 }

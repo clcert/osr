@@ -21,10 +21,10 @@ var BlacklistedSubnetModel = Model{
 // BlacklistedSubnet represents a subnet tthat we must not scan.
 type BlacklistedSubnet struct {
 	// Task structure
-	DateAdded time.Time  `pg:",notnull,default:now()"` // Date of the blacklisted element submission
-	Subnet    *net.IPNet `pg:",pk"`                    // IP range blacklisted
-	Reason    string     `pg:",type:varchar(255)"`     // Reason for blacklisting
-	ContactID string     `pg:",type:varchar(32)"`      // Contact ID
+	DateAdded time.Time  `pg:",use_zero,default:now()"` // Date of the blacklisted element submission
+	Subnet    *net.IPNet `pg:",pk"`                     // IP range blacklisted
+	Reason    string     `pg:",type:varchar(255)"`      // Reason for blacklisting
+	ContactID string     `pg:",type:varchar(32)"`       // Contact ID
 	Contact   *Contact   `pg:"rel:has-one"`
 }
 

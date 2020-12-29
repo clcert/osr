@@ -14,8 +14,8 @@ var PortModel = Model{
 
 // Protocol groups all the scanned ports and their meanings.
 type Port struct {
-	Number      uint16 `pg:",pk,type:bigint"`            // Protocol number
-	Name        string `pg:",notnull,type:varchar(255)"` // Protocol service name
+	Number      uint16 `pg:",pk,type:bigint"`             // Protocol number
+	Name        string `pg:",use_zero,type:varchar(255)"` // Protocol service name
 	Description string // Protocol service description
 }
 

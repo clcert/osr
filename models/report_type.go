@@ -11,8 +11,8 @@ var ReportTypeModel = Model{
 }
 
 type ReportType struct {
-	ID          ReportTypeID `pg:",pk"`                        // scanned Category ID
-	Name        string       `pg:",notnull,type:varchar(255)"` // scanned Category name
+	ID          ReportTypeID `pg:",pk"`                         // scanned Category ID
+	Name        string       `pg:",use_zero,type:varchar(255)"` // scanned Category name
 	Description string       // scanned Category description
 }
 
