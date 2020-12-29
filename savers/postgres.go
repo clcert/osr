@@ -2,13 +2,14 @@ package savers
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/clcert/osr/databases"
 	"github.com/clcert/osr/logs"
 	"github.com/clcert/osr/utils"
-	"github.com/go-pg/pg"
+	"github.com/go-pg/pg/v10"
 	"github.com/sirupsen/logrus"
-	"sync"
-	"time"
 )
 
 // PostgresConfig defines a basic configuration for a Postgres saver.

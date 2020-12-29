@@ -15,11 +15,11 @@ var SubnetCountryModel = Model{
 
 // SubnetASN represents the association between a subnet and a Country.
 type SubnetCountry struct {
-	TaskID           int `sql:",pk,type:bigint"`          // Number of the importer session
-	Task             *Task                                // Task struct
-	SourceID         DataSourceID `sql:",pk,type:bigint"` // A listed source for the data.
-	Source           *Source                              // Source pointer
-	Subnet           *net.IPNet `sql:",pk"`               // Subnet associated to this entry
-	CountryGeonameId int        `sql:",pk,type:integer"`  // Geoname Number associated to this Subnet
-	Country          *Country                             // Country struct
+	TaskID           int          `pg:",pk,type:bigint"`  // Number of the importer session
+	Task             *Task        `pg:"rel:has-one"`      // Task struct
+	SourceID         DataSourceID `pg:",pk,type:bigint"`  // A listed source for the data.
+	Source           *Source      `pg:"rel:has-one"`      // Source pointer
+	Subnet           *net.IPNet   `pg:",pk"`              // Subnet associated to this entry
+	CountryGeonameId int          `pg:",pk,type:integer"` // Geoname Number associated to this Subnet
+	Country          *Country     `pg:"rel:has-one"`      // Country struct
 }

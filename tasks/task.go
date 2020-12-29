@@ -2,6 +2,9 @@ package tasks
 
 import (
 	"fmt"
+	"path"
+	"strings"
+
 	"github.com/clcert/osr/databases"
 	"github.com/clcert/osr/logs"
 	"github.com/clcert/osr/mailer"
@@ -9,11 +12,9 @@ import (
 	"github.com/clcert/osr/savers"
 	"github.com/clcert/osr/sources"
 	"github.com/clcert/osr/utils"
-	"github.com/go-pg/pg"
+	"github.com/go-pg/pg/v10"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"path"
-	"strings"
 )
 
 // Defines a complete file with one or more process, savers and exports.

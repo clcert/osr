@@ -36,13 +36,13 @@ var ReportEntryModel = Model{
 
 // ReportEntry represents an entry of an IP report.
 type ReportEntry struct {
-	TaskID       int `sql:",type:bigint"`         // Number of the importer session
-	Task         *Task                            // Task structure
-	SourceID     DataSourceID `sql:",pk,notnull"` // A listed source for the data.
-	Source       *Source                          // Source pointer
-	ReportTypeID ReportTypeID `sql:",pk,notnull"` // Type of report
-	ReportType   *ReportType                      // Type of report
-	Date         time.Time `sql:",pk,notnull"`    // Date of the scan
-	IP           net.IP    `sql:",pk,notnull"`    // Source Address (scanned device)
-	Properties   map[string]string                // Report extra metadata
+	TaskID       int               `pg:",type:bigint"` // Number of the importer session
+	Task         *Task             `pg:"rel:has-one"`  // Task structure
+	SourceID     DataSourceID      `pg:",pk,notnull"`  // A listed source for the data.
+	Source       *Source           `pg:"rel:has-one"`  // Source pointer
+	ReportTypeID ReportTypeID      `pg:",pk,notnull"`  // Type of report
+	ReportType   *ReportType       `pg:"rel:has-one"`  // Type of report
+	Date         time.Time         `pg:",pk,notnull"`  // Date of the scan
+	IP           net.IP            `pg:",pk,notnull"`  // Source Address (scanned device)
+	Properties   map[string]string // Report extra metadata
 }

@@ -3,14 +3,15 @@ package databases
 import (
 	"bufio"
 	"fmt"
-	"github.com/clcert/osr/logs"
-	"github.com/clcert/osr/utils"
-	"github.com/go-pg/pg"
-	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/ssh/terminal"
 	"os"
 	"strconv"
 	"syscall"
+
+	"github.com/clcert/osr/logs"
+	"github.com/clcert/osr/utils"
+	"github.com/go-pg/pg/v10"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // GetDBConfigData asks interactively for Postgres config parameters.
@@ -109,7 +110,7 @@ func InitDatabase(address, port, dbname, username, password string) error {
 		logs.Log.WithFields(logrus.Fields{
 			"database":      dbname,
 			"readuser_name": readerUser,
-		}).Error("Couldn't create read user. has the user provided enough permissions to create an user?")
+		}).Errorf("Couldn't create read user: %s (has the user provided enough permissions to create an user?)", err)
 		// Remove created database.
 		if _, err := db.Exec(fmt.Sprintf("DROP DATABASE %s", dbname)); err != nil {
 			logs.Log.WithFields(logrus.Fields{

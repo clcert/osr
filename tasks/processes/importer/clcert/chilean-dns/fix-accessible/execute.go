@@ -2,13 +2,14 @@ package fix_accessible
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/clcert/osr/databases"
 	"github.com/clcert/osr/models"
 	"github.com/clcert/osr/tasks"
 	chilean_dns "github.com/clcert/osr/tasks/processes/importer/clcert/chilean-dns"
-	"github.com/go-pg/pg"
+	"github.com/go-pg/pg/v10"
 	"github.com/sirupsen/logrus"
-	"time"
 )
 
 var RRToDerived = map[models.RRType]models.RRType{

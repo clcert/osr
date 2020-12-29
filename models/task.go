@@ -1,8 +1,9 @@
 package models
 
 import (
-	"github.com/go-pg/pg"
 	"time"
+
+	"github.com/go-pg/pg/v10"
 )
 
 var TaskModel = Model{
@@ -29,10 +30,10 @@ var statusToString = map[TaskStatus]string{
 
 // The struct represents an task session
 type Task struct {
-	ID        int                         // The unique Number of the task session
-	StartDate time.Time                   // Task Session start date
-	EndDate   time.Time                   // Task Session end date
-	Status    TaskStatus `sql:",notnull"` // Task session status
+	ID        int        // The unique Number of the task session
+	StartDate time.Time  // Task Session start date
+	EndDate   time.Time  // Task Session end date
+	Status    TaskStatus `pg:",notnull"` // Task session status
 }
 
 func (task *Task) GetStatus() string {
@@ -46,7 +47,7 @@ func NewTaskSession(db *pg.DB, save bool) (*Task, error) {
 		Status:    PROCESSING,
 	}
 	if save {
-		err := db.Insert(newImport)
+		_, err := db.Model(newImport).Insert()
 		if err != nil {
 			return nil, err
 		}
@@ -84,11 +85,12 @@ func (task *Task) Succeeded() {
 	task.Status = SUCCESS
 }
 
-// Saves the status of the task session.
-func (task *Task) Save(db *pg.DB) error {
+// Save Saves the status of the task session.
+func (task *Task) Save(db *pg.DB) (err error) {
 	if task.ID == 0 {
-		return db.Insert(task)
+		_, err = db.Model(task).Insert()
 	} else {
-		return db.Update(task)
+		_, err = db.Model(task).Update()
 	}
+	return
 }

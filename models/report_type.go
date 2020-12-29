@@ -1,6 +1,6 @@
 package models
 
-import "github.com/go-pg/pg"
+import "github.com/go-pg/pg/v10"
 
 // ReportTypeModel contains the metainformation related to the respective model.
 var ReportTypeModel = Model{
@@ -11,9 +11,9 @@ var ReportTypeModel = Model{
 }
 
 type ReportType struct {
-	ID          ReportTypeID `sql:",pk"`                        // scanned Category ID
-	Name        string       `sql:",notnull,type:varchar(255)"` // scanned Category name
-	Description string                                          // scanned Category description
+	ID          ReportTypeID `pg:",pk"`                        // scanned Category ID
+	Name        string       `pg:",notnull,type:varchar(255)"` // scanned Category name
+	Description string       // scanned Category description
 }
 
 // TODO: Extract this information from another source

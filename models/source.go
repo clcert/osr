@@ -1,11 +1,11 @@
 package models
 
-import "github.com/go-pg/pg"
+import "github.com/go-pg/pg/v10"
 
 type DataSourceID uint64
 
 const (
-	UnknownSource DataSourceID  = iota
+	UnknownSource DataSourceID = iota
 	CLCERT
 	NICChile
 	CIDRReport
@@ -25,10 +25,10 @@ var SourceModel = Model{
 }
 
 type Source struct {
-	ID          DataSourceID `sql:",pk"`                        // Source Number
-	Name        string       `sql:",notnull,type:varchar(255)"` // Source name
-	URL         string       `sql:",type:varchar(512)"`         // Source URL
-	Description string                                          // Source Description
+	ID          DataSourceID `pg:",pk"`                        // Source Number
+	Name        string       `pg:",notnull,type:varchar(255)"` // Source name
+	URL         string       `pg:",type:varchar(512)"`         // Source URL
+	Description string       // Source Description
 }
 
 // TODO: Extract this information from another source

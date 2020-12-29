@@ -14,7 +14,7 @@ func init() {
 			Description:     "Exports information from csv-like sources to a SFTP location",
 			DefaultSourceID: models.CLCERT, // CLCERT transforms it
 			Execute:         simple.Execute,
-			NumSources:      1,
+			NumSources:      -1,
 			NumSavers:       1,
 		},
 	)

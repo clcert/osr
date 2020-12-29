@@ -2,14 +2,15 @@ package sources
 
 import (
 	"fmt"
+	"io"
+	"path"
+
 	"github.com/clcert/osr/databases"
 	"github.com/clcert/osr/logs"
 	"github.com/clcert/osr/query"
 	"github.com/clcert/osr/utils"
-	"github.com/go-pg/pg"
+	"github.com/go-pg/pg/v10"
 	"github.com/sirupsen/logrus"
-	"io"
-	"path"
 )
 
 // TODO: More logging on this source

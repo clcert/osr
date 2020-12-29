@@ -1,9 +1,8 @@
 package models
 
 import (
-	"github.com/go-pg/pg"
+	"github.com/go-pg/pg/v10"
 )
-
 
 // PortModel contains the metainformation related to the respective model.
 var PortModel = Model{
@@ -13,11 +12,10 @@ var PortModel = Model{
 	AfterCreateFunction: createPortDefinitions,
 }
 
-
 // Protocol groups all the scanned ports and their meanings.
 type Port struct {
-	Number      uint16 `sql:",pk,type:bigint"`          // Protocol number
-	Name        string `sql:",notnull,type:varchar(255)"` // Protocol service name
+	Number      uint16 `pg:",pk,type:bigint"`            // Protocol number
+	Name        string `pg:",notnull,type:varchar(255)"` // Protocol service name
 	Description string // Protocol service description
 }
 

@@ -11,7 +11,7 @@ var SubnetContactModel = Model{
 }
 
 type SubnetContact struct {
-	ContactID string `sql:",pk,type:varchar(32)"` // Contact ID
-	Contact   Contact
-	Subnet    net.IPNet `sql:",pk"`
+	ContactID string    `pg:",pk,type:varchar(32)"` // Contact ID
+	Contact   *Contact  `pg:"rel:has-one"`
+	Subnet    net.IPNet `pg:",pk"`
 }

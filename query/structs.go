@@ -3,11 +3,12 @@ package query
 // TODO comment all this file
 import (
 	"fmt"
+	"io"
+
 	"github.com/clcert/osr/logs"
 	"github.com/clcert/osr/utils"
-	"github.com/go-pg/pg"
+	"github.com/go-pg/pg/v10"
 	"github.com/sirupsen/logrus"
-	"io"
 )
 
 type File struct {
@@ -16,6 +17,7 @@ type File struct {
 
 type Query struct {
 	Name        string `yaml:"name"`
+	Ignore      bool   `yaml:"ignore"`
 	Description string `yaml:"description"`
 	SQL         string `yaml:"query"`
 }
@@ -105,6 +107,7 @@ func (queries Configs) Format(params utils.Params) Configs {
 func (entry *Query) Format(params utils.Params, queries map[string]*Query) (*Query, error) {
 	q := &Query{
 		Name:        params.FormatString(entry.Name),
+		Ignore:      entry.Ignore,
 		Description: params.FormatString(entry.Description),
 	}
 	sql, err := formatQuery(params, entry, queries)

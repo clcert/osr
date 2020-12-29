@@ -2,9 +2,10 @@ package geoasn
 
 import (
 	"fmt"
-	"github.com/clcert/osr/models"
-	"github.com/go-pg/pg"
 	"net"
+
+	"github.com/clcert/osr/models"
+	"github.com/go-pg/pg/v10"
 )
 
 // Classifier allows to clasify IPs based on Geographical and ASN metadata

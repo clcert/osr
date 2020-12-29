@@ -4,12 +4,13 @@ package models
 
 import (
 	"fmt"
+
 	"github.com/clcert/osr/databases"
 	"github.com/clcert/osr/logs"
 	"github.com/clcert/osr/query"
 	"github.com/fatih/structs"
-	"github.com/go-pg/pg"
-	"github.com/go-pg/pg/orm"
+	"github.com/go-pg/pg/v10"
+	"github.com/go-pg/pg/v10/orm"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -110,7 +111,8 @@ func (m *Model) BeforeCreateTable(db *pg.DB) error {
 		err := m.BeforeCreateFunction(db)
 		if err != nil {
 			return err
-		}	}
+		}
+	}
 	// From config
 	if conf, err := m.GetConfig(); err == nil {
 		logs.Log.WithFields(logrus.Fields{
@@ -134,7 +136,7 @@ func (m *Model) AfterCreateTable(db *pg.DB) error {
 		for _, stmt := range m.AfterCreateStmts {
 			logs.Log.WithFields(logrus.Fields{
 				"model": m.Name,
-				"stmt": stmt,
+				"stmt":  stmt,
 			}).Info("Executing hardcoded after statements...")
 			_, err := db.Model(m.StructType).Exec(stmt)
 			if err != nil {
@@ -197,7 +199,7 @@ func (s *ModelsList) CreateTables() error {
 		logs.Log.WithFields(logrus.Fields{
 			"model": m.Name,
 		}).Info("Creating table for model...")
-		err := db.CreateTable(m.StructType, &orm.CreateTableOptions{
+		err := db.Model(m.StructType).CreateTable(&orm.CreateTableOptions{
 			IfNotExists:   true,
 			FKConstraints: false,
 		})
@@ -211,7 +213,7 @@ func (s *ModelsList) CreateTables() error {
 		if err != nil {
 			logs.Log.WithFields(logrus.Fields{
 				"model": m.Name,
-			}).Error("Error executing the statements after model creation: %s", err)
+			}).Errorf("Error executing the statements after model creation: %s", err)
 			return err
 		}
 	}

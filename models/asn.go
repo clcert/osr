@@ -9,8 +9,8 @@ var ASNModel = Model{
 
 // ASN Represents an Autonomous System number.
 type ASN struct {
-	ID            int    `sql:",notnull"`                   // Official assigned Number for the ASN
-	Name          string `sql:",notnull,type:varchar(255)"` // Official name of the ASN
-	CountryAlpha2 string `sql:"type:varchar(2)"`            // 2 letter code of the ASN Country
-	Subnets       *[]SubnetASN                              // List of asns associated to the ASN
+	ID            int          `pg:",notnull"`                   // Official assigned Number for the ASN
+	Name          string       `pg:",notnull,type:varchar(255)"` // Official name of the ASN
+	CountryAlpha2 string       `pg:"type:varchar(2)"`            // 2 letter code of the ASN Country
+	Subnets       []*SubnetASN `pg:"rel:has-many"`               // List of asns associated to the ASN
 }

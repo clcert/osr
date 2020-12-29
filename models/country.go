@@ -9,8 +9,8 @@ var CountryModel = Model{
 
 // Country represents a country in the world.
 type Country struct {
-	Alpha2    string `sql:",unique,type:varchar(2)"` // 2 letter representation of the country
-	Name      string `sql:",type:varchar(255)"`      // name of the country in spanish
-	GeonameId int    `sql:",pk,type:integer"`        // Geoname Number of the country, as noted by Geolite database.
-	Subnets   *[]SubnetCountry                       // List of asns associated to the country.
+	Alpha2    string           `pg:",unique,type:varchar(2)"` // 2 letter representation of the country
+	Name      string           `pg:",type:varchar(255)"`      // name of the country in spanish
+	GeonameId int              `pg:",pk,type:integer"`        // Geoname Number of the country, as noted by Geolite database.
+	Subnets   []*SubnetCountry `pg:"rel:has-many"`            // List of asns associated to the country.
 }

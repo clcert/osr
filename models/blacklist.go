@@ -1,9 +1,10 @@
-	package models
+package models
 
 import (
-	"github.com/go-pg/pg"
 	"net"
 	"time"
+
+	"github.com/go-pg/pg/v10"
 )
 
 // BlacklistedSubnetModel contains the metainformation related to the respective model.
@@ -20,11 +21,11 @@ var BlacklistedSubnetModel = Model{
 // BlacklistedSubnet represents a subnet tthat we must not scan.
 type BlacklistedSubnet struct {
 	// Task structure
-	DateAdded time.Time  `sql:",notnull,default:now()"` // Date of the blacklisted element submission
-	Subnet    *net.IPNet `sql:",pk"`                    // IP range blacklisted
-	Reason    string     `sql:",type:varchar(255)"`     // Reason for blacklisting
-	ContactID string     `sql:",type:varchar(32)"`   // Contact ID
-	Contact   *Contact
+	DateAdded time.Time  `pg:",notnull,default:now()"` // Date of the blacklisted element submission
+	Subnet    *net.IPNet `pg:",pk"`                    // IP range blacklisted
+	Reason    string     `pg:",type:varchar(255)"`     // Reason for blacklisting
+	ContactID string     `pg:",type:varchar(32)"`      // Contact ID
+	Contact   *Contact   `pg:"rel:has-one"`
 }
 
 // DefaultBlacklistSubnets inserts the reserved ranges of subnets to the database when it is created.

@@ -6,7 +6,8 @@ require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/fatih/structs v1.1.0
-	github.com/go-pg/pg v0.0.0-20190628113742-c6ebb590c53e
+	github.com/go-pg/pg v8.0.7+incompatible
+	github.com/go-pg/pg/v10 v10.7.3
 	github.com/google/btree v1.0.0
 	github.com/google/gopacket v1.1.17
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
@@ -20,13 +21,11 @@ require (
 	github.com/spf13/afero v1.2.0 // indirect
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/viper v1.3.1
-	golang.org/x/crypto v0.0.0-20190530122614-20be4c3c3ed5
+	golang.org/x/crypto v0.0.0-20201117144127-c1f2f97bffc9
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
-	golang.org/x/sys v0.0.0-20190602015325-4c4f7f33c9ed // indirect
-	golang.org/x/text v0.3.2
+	golang.org/x/text v0.3.3
 	gonum.org/v1/netlib v0.0.0-20190331212654-76723241ea4e // indirect
 	gonum.org/v1/plot v0.0.0-20190615073203-9aa86143727f
-	google.golang.org/appengine v1.4.0 // indirect
 	gopkg.in/tchap/go-patricia.v2 v2.3.0
-	gopkg.in/yaml.v2 v2.2.2
+	gopkg.in/yaml.v2 v2.3.0
 )

@@ -1,20 +1,20 @@
 package query
 
 import (
-	"github.com/clcert/osr/databases"
-	"github.com/clcert/osr/logs"
-	"github.com/clcert/osr/utils"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
-)
 
+	"github.com/clcert/osr/databases"
+	"github.com/clcert/osr/logs"
+	"github.com/clcert/osr/utils"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
+)
 
 // Export executes queries defined in inFolder. If whitelist is not empty, it uses only the queries of it.
 func Execute(queryFiles []string, outFolder string, whitelist []string, headers bool, params []string) error {
@@ -42,12 +42,16 @@ func Execute(queryFiles []string, outFolder string, whitelist []string, headers 
 		whitelisted := make(map[string]*Query)
 		if len(whitelist) > 0 {
 			for _, queryName := range whitelist {
-				if query, ok := queries[queryName]; ok {
+				if query, ok := queries[queryName]; ok && !query.Ignore {
 					whitelisted[queryName] = query
 				}
 			}
 		} else {
-			whitelisted = queries
+			for queryName, query := range queries {
+				if !query.Ignore {
+					whitelisted[queryName] = query
+				}
+			}
 		}
 		for _, query := range whitelisted {
 			newFilePath := filepath.Join(outFolderPath, query.Name+".csv")
@@ -58,7 +62,7 @@ func Execute(queryFiles []string, outFolder string, whitelist []string, headers 
 			if err != nil {
 				return err
 			}
-			chErr := query.Export(db, newFile, headers);
+			chErr := query.Export(db, newFile, headers)
 			if <-chErr != nil {
 				return err
 			}
@@ -66,8 +70,6 @@ func Execute(queryFiles []string, outFolder string, whitelist []string, headers 
 	}
 	return nil
 }
-
-
 
 // Helper function which returns the queries locations using the config values.
 func GetQueriesPath() (string, error) {

@@ -19,6 +19,7 @@ var PortScanModel = Model{
 		"CREATE INDEX IF NOT EXISTS port_scan_service_name ON ?TableName USING btree (service_name)",
 		"CREATE INDEX IF NOT EXISTS port_scan_service_version ON ?TableName USING btree (service_version)",
 		"CREATE INDEX IF NOT EXISTS port_scan_source_id ON ?TableName USING btree (source_id)",
+		"SELECT partman.create_parent('public.port_scans', 'date', 'native', 'weekly');",
 	},
 }
 
@@ -33,17 +34,18 @@ const (
 
 // PortScan represents an open protocol port on a machine with an specific IP in a specific time.
 type PortScan struct {
-	TaskID         int          `sql:",type:bigint"` // Protocol of the importer session
-	Task           *Task        // Task structure
-	SourceID       DataSourceID `sql:",pk,notnull,type:bigint"` // A listed source for the data.
-	Source         *Source      // Source pointer
-	Date           time.Time    `sql:",pk,notnull"`     // Date of the scan
-	ScanIP         net.IP       `sql:",pk"`             // IP address used to scan the server
-	IP             net.IP       `sql:",pk"`             // Address
-	PortNumber     uint16       `sql:",pk,type:bigint"` // Protocol number scanned
-	Protocol       PortProtocol `sql:",pk,type:smallint,notnull"`
-	Port           *Port
-	ServiceActive  bool `sql:",notnull,default:false"`
+	tableName      struct{}     `pg:"port_scans,partition_by:RANGE(date)"` // Partitioning
+	TaskID         int          `pg:",type:bigint"`                        // Protocol of the importer session
+	Task           *Task        `pg:"rel:has-one"`                         // Task structure
+	SourceID       DataSourceID `pg:",pk,notnull,type:bigint"`             // A listed source for the data.
+	Source         *Source      `pg:"rel:has-one"`                         // Source pointer
+	Date           time.Time    `pg:",pk,notnull"`                         // Date of the scan
+	ScanIP         net.IP       `pg:",pk"`                                 // IP address used to scan the server
+	IP             net.IP       `pg:",pk"`                                 // Address
+	PortNumber     uint16       `pg:",pk,type:bigint"`                     // Protocol number scanned
+	Protocol       PortProtocol `pg:",pk,type:smallint,notnull"`
+	Port           *Port        `pg:"rel:has-one"`
+	ServiceActive  bool         `pg:",notnull,default:false"`
 	ServiceName    string
 	ServiceVersion string
 	ServiceExtra   string

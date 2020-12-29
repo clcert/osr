@@ -21,6 +21,8 @@ type SFTPConfig struct {
 	Path       string                     // Init path. If the folder doesn't exist, it's created
 	ForceFlush bool                       // If it's true, the file lines are commited immediately. Its slower but safer (if the routine crashes, it saves some data).
 	FileConfig map[string]*SFTPFileConfig // A map with the outID of the savables as the key, and a configuration as a value.
+	Append     bool                       // If true, all non defined files are append by default
+
 }
 
 // SFTPFileConfig defines a configuration for a specific file or outID.
@@ -173,6 +175,7 @@ func (saver *SFTPSaver) writeToFile(savable Savable) {
 
 			saver.FileConfig[outID] = &SFTPFileConfig{
 				FileName: strings.Replace(outID, "/", "-", -1),
+				Append:   saver.SFTPConfig.Append,
 				Fields:   savable.FieldNames(), // all the fields
 			}
 
@@ -248,6 +251,7 @@ func (saver *SFTPSaver) createOutFile(name string, config *SFTPFileConfig) error
 func (fileConfig *SFTPFileConfig) Format(params utils.Params) *SFTPFileConfig {
 	newFileConfig := &SFTPFileConfig{
 		FileName: params.FormatString(fileConfig.FileName),
+		Append:   fileConfig.Append,
 		Fields:   make([]string, len(fileConfig.Fields)),
 	}
 	for i, v := range fileConfig.Fields {

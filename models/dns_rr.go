@@ -13,11 +13,13 @@ var DnsRRModel = Model{
 	AfterCreateStmts: []string{
 		"CREATE INDEX IF NOT EXISTS dns_rr_index ON ?TableName USING gist (ip_value inet_ops)",
 		"CREATE INDEX IF NOT EXISTS dns_rr_timestamp ON ?TableName USING btree (date)",
+		"SELECT partman.create_parent('public.dns_rrs', 'date', 'native', 'weekly');",
 	}}
 
+// RRType maps a number to an RR type.
 type RRType int
 
-// The RRs scanned at the time are A, MX, NS y CNAME.
+// The RRs scanned at the time are A, MX, NS and CNAME.
 const (
 	NORR  RRType = iota // Undefined RR
 	A                   // A RR
@@ -57,25 +59,26 @@ func RRTypeToString(rr RRType) string {
 	return "no_rr"
 }
 
-// Result of a DNS scan of a domain.
+// DnsRR represents the result of a DNS scan of a domain.
 type DnsRR struct {
-	TaskID          int                                       // Number of the task set
-	Task            *Task                                     // Task structure
-	SourceID        DataSourceID `sql:",type:bigint"`                  // A listed source for the data.
-	Source          *Source                                   // Source pointer
-	Date            time.Time `sql:",notnull,default:now()"`  // Date of the scan
-	Domain          *Domain                                   // DomainDomainCategory (Actually, FQDN) scanned
-	DomainSubdomain string `sql:",notnull,type:varchar(255)"` //Subdomain(s) of the domain scanned
-	DomainName      string `sql:",notnull,type:varchar(255)"` //name of the domain scanned
-	DomainTLD       string `sql:",notnull,type:varchar(255)"` // TLD of the domain scanned
-	ScanType        RRType `sql:",notnull,default:0"`         // Scan type of the result. See the const for more details.
-	DerivedType     RRType `sql:",notnull,default:0"`         // When ahother RR requires to make a specific scan (like the IPs pointed by the domain as value of MX scan), its type appears here.
-	Index           int    `sql:",notnull,default:0"`
-	IPValue         net.IP                                    // Address value in A RRs
-	ValueSubdomain  string `sql:",notnull,type:varchar(255)"` // Subdomain value in MX, NS and CNAME RRs
-	ValueName       string `sql:",notnull,type:varchar(255)"` // name value in MX, NS and CNAME RRs
-	ValueTLD        string `sql:",notnull,type:varchar(255)"` // TLD value in MX, NS and CNAME RRs
-	Priority        int    `sql:",notnull,default:0"`         // Priority value in MX RRs.
-	Accessible      bool   `sql:",notnull"`                   // Accessibility value in A RRs.
-	Valid           bool   `sql:",notnull"`                   // Determines if a value is well written or in a valid range of values.
+	tableName       struct{}     `pg:"dns_rrs,partition_by:RANGE(date)"` // Partitioning
+	TaskID          int          // Number of the task set
+	Task            *Task        `pg:"rel:has-one"`                // Task structure
+	SourceID        DataSourceID `pg:",type:bigint"`               // A listed source for the data.
+	Source          *Source      `pg:"rel:has-one"`                // Source pointer
+	Date            time.Time    `pg:",notnull,default:now()"`     // Date of the scan
+	Domain          *Domain      `pg:"rel:has-one"`                // DomainDomainCategory (Actually, FQDN) scanned
+	DomainSubdomain string       `pg:",notnull,type:varchar(255)"` //Subdomain(s) of the domain scanned
+	DomainName      string       `pg:",notnull,type:varchar(255)"` //name of the domain scanned
+	DomainTLD       string       `pg:",notnull,type:varchar(255)"` // TLD of the domain scanned
+	ScanType        RRType       `pg:",notnull,default:0"`         // Scan type of the result. See the const for more details.
+	DerivedType     RRType       `pg:",notnull,default:0"`         // When ahother RR requires to make a specific scan (like the IPs pointed by the domain as value of MX scan), its type appears here.
+	Index           int          `pg:",notnull,default:0"`
+	IPValue         net.IP       // Address value in A RRs
+	ValueSubdomain  string       `pg:",notnull,type:varchar(255)"` // Subdomain value in MX, NS and CNAME RRs
+	ValueName       string       `pg:",notnull,type:varchar(255)"` // name value in MX, NS and CNAME RRs
+	ValueTLD        string       `pg:",notnull,type:varchar(255)"` // TLD value in MX, NS and CNAME RRs
+	Priority        int          `pg:",notnull,default:0"`         // Priority value in MX RRs.
+	Accessible      bool         `pg:",notnull"`                   // Accessibility value in A RRs.
+	Valid           bool         `pg:",notnull"`                   // Determines if a value is well written or in a valid range of values.
 }
