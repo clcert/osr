@@ -45,12 +45,16 @@ func (config *Config) Open() (map[string]*Query, error) {
 	whitelisted := make(map[string]*Query)
 	if len(config.Whitelist) > 0 {
 		for _, queryName := range config.Whitelist {
-			if query, ok := queries[queryName]; ok {
+			if query, ok := queries[queryName]; ok && !query.Ignore {
 				whitelisted[queryName] = query
 			}
 		}
 	} else {
-		whitelisted = queries
+		for queryName, query := range queries {
+			if !query.Ignore {
+				whitelisted[queryName] = query
+			}
+		}
 	}
 	return whitelisted, nil
 }
