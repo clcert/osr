@@ -90,7 +90,7 @@ func (task *Task) Save(db *pg.DB) (err error) {
 	if task.ID == 0 {
 		_, err = db.Model(task).Insert()
 	} else {
-		_, err = db.Model(task).Update()
+		_, err = db.Model(task).WherePK().Update()
 	}
 	return
 }
