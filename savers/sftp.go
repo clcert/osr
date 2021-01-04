@@ -237,13 +237,15 @@ func (saver *SFTPSaver) createOutFile(name string, config *SFTPFileConfig) error
 		file:   aFile,
 		writer: csv.NewWriter(aFile),
 	}
-	err = saver.outFiles[name].writer.Write(config.Fields)
-	if saver.ForceFlush {
-		saver.outFiles[name].writer.Flush()
-	}
-	if err != nil {
-		saver.outFiles[name].file.Close()
-		return err
+	if !config.Append {
+		err = saver.outFiles[name].writer.Write(config.Fields)
+		if saver.ForceFlush {
+			saver.outFiles[name].writer.Flush()
+		}
+		if err != nil {
+			saver.outFiles[name].file.Close()
+			return err
+		}
 	}
 	return nil
 }
