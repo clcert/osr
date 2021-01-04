@@ -141,6 +141,10 @@ func GetPostgresReader() (*pg.DB, error) {
 		User:     conf.Reader.Username,
 		Password: conf.Reader.Password,
 		Database: conf.DBName,
+		OnConnect: func(ctx context.Context, cn *pg.Conn) error {
+			_, err := cn.Exec("set TIMEZONE='America/Santiago'")
+			return err
+		},
 	})
 	// db.AddQueryHook(dbLogger{})
 	return db, err
