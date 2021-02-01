@@ -10,12 +10,14 @@ package savers
 
 import (
 	"fmt"
+	"reflect"
+	"sort"
+
 	"github.com/clcert/osr/logs"
 	"github.com/clcert/osr/mailer"
 	"github.com/clcert/osr/panics"
 	"github.com/clcert/osr/utils"
 	"github.com/fatih/structs"
-	"reflect"
 )
 
 // A saver is a device where I can save results of processes.
@@ -145,19 +147,17 @@ func (savable *Savable) Fields() map[string]interface{} {
 
 // FieldNames returns the names of the fields of the structure contained by Savable
 func (savable *Savable) FieldNames() []string {
+	fieldNames := make([]string, 0)
 	switch {
 	case savable.IsStruct():
-		s := structs.New(savable.Object)
-		return s.Names()
+		fieldNames = structs.New(savable.Object).Names()
 	case savable.IsMap():
 		savableMap := savable.Object.(map[string]string)
-		fieldNames := make([]string, len(savableMap))
 		i := 0
-		for f, _ := range savableMap {
-			fieldNames[i] = f
+		for f := range savableMap {
+			fieldNames = append(fieldNames, f)
 			i++
 		}
-		return fieldNames
 	default:
 		panic(&panics.Info{
 			Text:        "Cannot save object different than a struct or map on a SFTP saver",
@@ -165,4 +165,6 @@ func (savable *Savable) FieldNames() []string {
 			Attachments: []mailer.Attachable{logs.Log},
 		})
 	}
+	sort.Strings(fieldNames)
+	return fieldNames
 }
